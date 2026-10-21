@@ -4,6 +4,7 @@
 #include "odbc.h"
 
 int handle_pagination(SQLHSTMT stmt, SQLHDBC dbc, int *offset, int total_params) {
+    (void)dbc;
     char tecla;
     SQLRETURN ret;
     int limit = PAGE_SIZE;
