@@ -65,8 +65,8 @@ int main(void) {
         printf("%d\t%s\n", x, y);
     }
  
-    // Free handles
-    // Statement
+    /* Free handles */
+    /* Statement*/
     if (stmt != SQL_NULL_HSTMT)
         SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 
