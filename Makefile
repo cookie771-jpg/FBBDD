@@ -1,13 +1,8 @@
-##########################################
-# Makefile Práctica 2
-# Ziqi Zhoulin y José Miguel Romero Oubiña
-###########################################
-# Compilador y flags
-CC = gcc -g
-CFLAGS = -Wall -Wextra -pedantic -ansi
-LDLIBS = -lodbc
+CC = gcc
+CFLAGS = -Wall -Wextra -g -std=c99
+LDFLAGS = -lodbc
 
-# Variables de entorno para PostgreSQL
+# --- PARTE 1: BASE DE DATOS ---
 export PGDATABASE := test01
 export PGUSER := alumnodb
 export PGPASSWORD := alumnodb
@@ -19,49 +14,19 @@ DBNAME = $(PGDATABASE)
 PSQL = psql
 CREATEDB = createdb
 DROPDB = dropdb --if-exists
-PG_DUMP = pg_dump
-PG_RESTORE = pg_restore
 
-# Archivos de cabecera
-HEADERS = odbc.h
+# --- PARTE 2: COMPILACIÓN ---
+# Añade aquí TODOS los ficheros .c del proyecto
+OBJS = main.o menu.o odbc.o customers.o pagination.o products.o orders.o
+TARGET = menu
 
-# Ejecutables
-ODBC_EXE = odbc-connection-test odbc-connection-test-2 odbc-example1 odbc-example2 odbc-example3 odbc-example4
-MENU_EXE = menu
+# El 'make all' hace las dos cosas: crea la BD y compila
+all: dropdb createdb restore $(TARGET)
 
-ALL_EXE = $(ODBC_EXE) $(MENU_EXE)
-
-# -----------------------------------------------------------------
-# Reglas de Compilación
-# -----------------------------------------------------------------
-
-# Compila todo (ODBC + menu)
-all: $(ALL_EXE)
-
-# Compila únicamente los programas de ODBC
-odbc: $(ODBC_EXE)
-
-# Compila únicamente el programa menu
-menu: $(MENU_EXE)
-
-# Compilación de archivos objeto con dependencia del header odbc.h
-%.o: %.c $(HEADERS)
-	@echo Compilando $<...
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-# Vinculación de los ejecutables ODBC (cada uno con su .o y odbc.o)
-$(ODBC_EXE): % : %.o odbc.o
-	$(CC) -o $@ $^ $(LDLIBS)
-
-# Vinculación del ejecutable menu (con menu.o y odbc.o)
-$(MENU_EXE): menu.o odbc.o
-	$(CC) -o $@ $^ $(LDLIBS)
-
-# -----------------------------------------------------------------
-# Reglas de Base de Datos
-# -----------------------------------------------------------------
-
-test01: dropdb createdb restore shell
+# Crear la base de datos
+dropdb:
+	@echo "Eliminando BBDD..."
+	@$(DROPDB) $(DBNAME) 2>/dev/null || true
 
 createdb:
 	@echo Creando BBDD...
@@ -77,29 +42,20 @@ dump:
 	@$(PG_DUMP) > $(DBNAME).sql
 
 restore:
-	@echo Restaurando base de datos...
-	@cat $(DBNAME).sql | $(PSQL)
+	@echo "Restaurando datos..."
+	@cat test01.sql | $(PSQL) 2>/dev/null || true
 
-psql: shell
+# Compilar el programa
+$(TARGET): $(OBJS)
+	$(CC) $(CFLAGS) -o $(TARGET) $(OBJS) $(LDFLAGS)
 
-shell:
-	@echo Creando psql shell...
-	@$(PSQL)
+%.o: %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 
-# -----------------------------------------------------------------
-# Reglas de Limpieza
-# -----------------------------------------------------------------
+# Limpieza
+clean:
+	rm -f *.o $(TARGET) core
 
-# Limpia todo
-clean: clean-odbc clean-menu
-	rm -f *.o core *.log
-
-# Limpia solo los ejecutables y objetos de ODBC
-clean-odbc:
-	rm -f $(ODBC_EXE) $(addsuffix .o,$(ODBC_EXE)) odbc.o
-
-# Limpia solo el ejecutable y objeto del menú
-clean-menu:
-	rm -f $(MENU_EXE) menu.o
-
-.PHONY: all odbc menu clean clean-odbc clean-menu test01 createdb dropdb dump restore psql shell
+# Splint
+splint:
+	splint -nullpass *.c *.h > splint.log
