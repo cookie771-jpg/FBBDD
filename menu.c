@@ -1,5 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "products.h"
+#include "orders.h"
+#include "customers.h"
+
 
 /* #include "menu_template.h" */
 /* #ifndef A2BIS_MENU_TEMPLATE_H */
