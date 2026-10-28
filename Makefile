@@ -1,5 +1,4 @@
-#Makefile Practica 2 -Ziqi Zhoulin y José Miguel Romero Oubiña
-# Compilador y flags
+#Makefile # Compilador y flags
 CC = gcc -g
 CFLAGS = -Wall -Wextra -pedantic -ansi
 LDLIBS = -lodbc
