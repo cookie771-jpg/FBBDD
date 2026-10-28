@@ -5,11 +5,11 @@ CFLAGS = -Wall -Wextra -pedantic -ansi
 LDLIBS = -lodbc
 
 # Variables de entorno para PostgreSQL
-export PGDATABASE := test01
-export PGUSER := alumnodb
-export PGPASSWORD := alumnodb
-export PGCLIENTENCODING := LATIN9
-export PGHOST := localhost
+export PGDATABASE:=classicmodels
+export PGUSER :=alumnodb
+export PGPASSWORD :=alumnodb
+export PGCLIENTENCODING:=LATIN9
+export PGHOST:=localhost
 
 # Herramientas de Base de Datos
 DBNAME = $(PGDATABASE)
@@ -58,23 +58,23 @@ $(MENU_EXE): menu.o odbc.o
 # Base de Datos
 # -----------------------------------------------------------------
 
-test01: dropdb createdb restore shell
+classic: dropdb createdb restore shell
 
 createdb:
-	@echo Creando BBDD...
+	@echo Creando BBDD
 	@$(CREATEDB)
 
 dropdb:
-	@echo Eliminando BBDD...
+	@echo Eliminando BBDD
 	@$(DROPDB) $(DBNAME)
 	rm -f *.log
 
 dump:
-	@echo Creando dumpfile...
+	@echo Creando dumpfile
 	@$(PG_DUMP) > $(DBNAME).sql
 
 restore:
-	@echo Restaurando base de datos...
+	@echo Restaurando base de datos
 	@cat $(DBNAME).sql | $(PSQL)
 
 psql: shell
