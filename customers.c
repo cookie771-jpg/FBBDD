@@ -1,124 +1,164 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sql.h>
-#include <sqlext.h>
 #include "odbc.h"
 #include "customers.h"
 #include "pagination.h"
 
+#define PROMPT "Enter a number that corresponds to your choice > "
+#define NAME_MAX_LEN 50
+
+/* Customers whose contact first or last name contains the text (paginated). */
+#define SQL_FIND \
+    "SELECT customernumber, customername, contactfirstname, contactlastname " \
+    "FROM customers " \
+    "WHERE contactfirstname LIKE ? OR contactlastname LIKE ? " \
+    "ORDER BY customernumber LIMIT ? OFFSET ?"
+
+/* Total units per product ordered by one customer, all orders added (paginated). */
+#define SQL_LIST_PRODUCTS \
+    "SELECT p.productname, SUM(od.quantityordered) " \
+    "FROM orders o " \
+    "JOIN orderdetails od ON od.ordernumber = o.ordernumber " \
+    "JOIN products p ON p.productcode = od.productcode " \
+    "WHERE o.customernumber = ? " \
+    "GROUP BY p.productcode, p.productname " \
+    "ORDER BY p.productcode LIMIT ? OFFSET ?"
+
+/* Payments minus purchases in ONE query. Two independent subqueries avoid
+ * multiplying rows (payments x orderdetails). Returns no row if the
+ * customer does not exist. */
+#define SQL_BALANCE \
+    "SELECT (SELECT COALESCE(SUM(pa.amount), 0) FROM payments pa " \
+    "         WHERE pa.customernumber = c.customernumber) " \
+    "     - (SELECT COALESCE(SUM(od.quantityordered * od.priceeach), 0) " \
+    "         FROM orders o JOIN orderdetails od ON od.ordernumber = o.ordernumber " \
+    "         WHERE o.customernumber = c.customernumber) " \
+    "FROM customers c WHERE c.customernumber = ?"
+
+/**
+ * @brief Asks for a customer number.
+ * @param out where the number is stored
+ * @return 0 if a valid number was read, -1 otherwise
+ * @author Persona B
+ */
+static int ask_customer_number(SQLINTEGER *out) {
+    char line[32];
+    char *end;
+    long value;
+
+    printf("Enter customer number > ");
+    if (read_line(line, sizeof(line)) != 0) return -1;
+    value = strtol(line, &end, 10);
+    if (end == line || *end != '\0') {
+        printf("Invalid customer number.\n");
+        return -1;
+    }
+    *out = (SQLINTEGER)value;
+    return 0;
+}
+
+/**
+ * @brief Customers -> Find: search by contact first or last name.
+ * @param dbc open connection
+ * @author Persona B
+ */
+static void customers_find(SQLHDBC dbc) {
+    SQLHSTMT stmt = SQL_NULL_HSTMT;
+    char text[NAME_MAX_LEN + 1];
+    char pattern[NAME_MAX_LEN + 3];
+
+    printf("Enter customer name > ");
+    if (read_line(text, sizeof(text)) != 0) return;
+    sprintf(pattern, "%%%s%%", text);
+
+    if (!SQL_SUCCEEDED(SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt))) return;
+    if (SQL_SUCCEEDED(SQLPrepare(stmt, (SQLCHAR *)SQL_FIND, SQL_NTS))) {
+        SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR,
+                         NAME_MAX_LEN + 2, 0, pattern, 0, NULL);
+        SQLBindParameter(stmt, 2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR,
+                         NAME_MAX_LEN + 2, 0, pattern, 0, NULL);
+        paginate(stmt, 2);
+    } else {
+        odbc_extract_error("SQLPrepare", stmt, SQL_HANDLE_STMT);
+    }
+    SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+}
+
+/**
+ * @brief Customers -> List Products: products ordered by a customer.
+ * @param dbc open connection
+ * @author Persona B
+ */
+static void customers_list_products(SQLHDBC dbc) {
+    SQLHSTMT stmt = SQL_NULL_HSTMT;
+    SQLINTEGER customer = 0;
+
+    if (ask_customer_number(&customer) != 0) return;
+
+    if (!SQL_SUCCEEDED(SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt))) return;
+    if (SQL_SUCCEEDED(SQLPrepare(stmt, (SQLCHAR *)SQL_LIST_PRODUCTS, SQL_NTS))) {
+        SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER,
+                         0, 0, &customer, 0, NULL);
+        paginate(stmt, 1);
+    } else {
+        odbc_extract_error("SQLPrepare", stmt, SQL_HANDLE_STMT);
+    }
+    SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+}
+
+/**
+ * @brief Customers -> Balance: payments minus purchases (no pagination).
+ * @param dbc open connection
+ * @author Persona B
+ */
+static void customers_balance(SQLHDBC dbc) {
+    SQLHSTMT stmt = SQL_NULL_HSTMT;
+    SQLINTEGER customer = 0;
+    double balance = 0.0;
+    SQLLEN ind = 0;
+
+    if (ask_customer_number(&customer) != 0) return;
+
+    if (!SQL_SUCCEEDED(SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt))) return;
+    if (SQL_SUCCEEDED(SQLPrepare(stmt, (SQLCHAR *)SQL_BALANCE, SQL_NTS))) {
+        SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER,
+                         0, 0, &customer, 0, NULL);
+        if (!SQL_SUCCEEDED(SQLExecute(stmt))) {
+            odbc_extract_error("SQLExecute", stmt, SQL_HANDLE_STMT);
+        } else if (SQL_SUCCEEDED(SQLFetch(stmt))) {
+            SQLGetData(stmt, 1, SQL_C_DOUBLE, &balance, 0, &ind);
+            printf("Balance = %.2f\n", balance);
+        } else {
+            printf("Customer %ld not found.\n", (long)customer);
+        }
+    } else {
+        odbc_extract_error("SQLPrepare", stmt, SQL_HANDLE_STMT);
+    }
+    SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+}
+
+/**
+ * @brief Customers submenu loop.
+ * @param dbc open connection
+ * @author Persona B
+ */
 void menu_customers(SQLHDBC dbc) {
-    int opcion = 0;
+    char line[16];
+    int choice = 0;
+
     do {
-        printf("\n--- CUSTOMERS ---\n");
-        printf("1. Find\n");
-        printf("2. List Products\n");
-        printf("3. Balance\n");
-        printf("4. Back\n");
-        printf("Enter a number that corresponds to your choice > ");
-        scanf("%d", &opcion);
+        printf("\n (1) Find\n (2) List Products\n (3) Balance\n (4) Back\n\n");
+        printf(PROMPT);
+        if (read_line(line, sizeof(line)) != 0) return;
+        choice = atoi(line);
 
-        switch (opcion) {
-            case 1: opcion_find(dbc); break;
-            case 2: opcion_list_products(dbc); break;
-            case 3: opcion_balance(dbc); break;
-            case 4: printf("Volviendo...\n"); break;
-            default: printf("Opcion no valida.\n");
+        switch (choice) {
+            case 1: customers_find(dbc); break;
+            case 2: customers_list_products(dbc); break;
+            case 3: customers_balance(dbc); break;
+            case 4: break;
+            default: printf("You have entered an invalid choice. Please try again\n");
         }
-    } while (opcion != 4);
-}
-
-void opcion_find(SQLHDBC dbc) {
-    SQLHSTMT stmt = SQL_NULL_HSTMT;
-    SQLRETURN ret;
-    char busqueda[50];
-    char like_busqueda[54];
-    int offset = 0;
-    int continuar = 1;
-
-    printf("Introduce nombre o apellido: ");
-    scanf("%49s", busqueda);
-    snprintf(like_busqueda, sizeof(like_busqueda), "%%%s%%", busqueda);
-
-    ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
-    if (!SQL_SUCCEEDED(ret)) return;
-
-    ret = SQLPrepare(stmt, (SQLCHAR*)"SELECT customernumber, customername, contactfirstname, contactlastname FROM customers WHERE contactfirstname LIKE ? OR contactlastname LIKE ? ORDER BY customernumber LIMIT ? OFFSET ?", SQL_NTS);
-    if (!SQL_SUCCEEDED(ret)) { SQLFreeHandle(SQL_HANDLE_STMT, stmt); return; }
-
-    SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 50, 0, like_busqueda, 0, NULL);
-    SQLBindParameter(stmt, 2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR, 50, 0, like_busqueda, 0, NULL);
-
-    while (continuar) {
-        continuar = handle_pagination(stmt, dbc, &offset, 2);
-        if (continuar == 1) {
-            SQLCloseCursor(stmt);
-        } else {
-            break;
-        }
-    }
-    SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-}
-
-void opcion_list_products(SQLHDBC dbc) {
-    SQLHSTMT stmt = SQL_NULL_HSTMT;
-    SQLRETURN ret;
-    int customernumber;
-    int offset = 0;
-    int continuar = 1;
-
-    printf("Introduce customer number: ");
-    scanf("%d", &customernumber);
-
-    ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
-    if (!SQL_SUCCEEDED(ret)) return;
-
-    ret = SQLPrepare(stmt, (SQLCHAR*)"SELECT p.productCode, p.productName, SUM(od.quantityOrdered) FROM products p JOIN orderdetails od ON p.productCode = od.productCode JOIN orders o ON od.orderNumber = o.orderNumber WHERE o.customerNumber = ? GROUP BY p.productCode, p.productName ORDER BY p.productCode LIMIT ? OFFSET ?", SQL_NTS);
-    if (!SQL_SUCCEEDED(ret)) { SQLFreeHandle(SQL_HANDLE_STMT, stmt); return; }
-
-    SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &customernumber, 0, NULL);
-
-    while (continuar) {
-        continuar = handle_pagination(stmt, dbc, &offset, 1);
-        if (continuar == 1) {
-            SQLCloseCursor(stmt);
-        } else {
-            break;
-        }
-    }
-    SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-}
-
-void opcion_balance(SQLHDBC dbc) {
-    SQLHSTMT stmt = SQL_NULL_HSTMT;
-    SQLRETURN ret;
-    int customernumber;
-    double pagos = 0.0, compras = 0.0;
-    SQLLEN ind_pagos, ind_compras;
-
-    printf("Introduce customer number: ");
-    scanf("%d", &customernumber);
-
-    ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
-    if (!SQL_SUCCEEDED(ret)) return;
-
-    ret = SQLPrepare(stmt, (SQLCHAR*)"SELECT SUM(amount) FROM payments WHERE customerNumber = ?", SQL_NTS);
-    SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &customernumber, 0, NULL);
-    SQLExecute(stmt);
-    if (SQL_SUCCEEDED(SQLFetch(stmt))) {
-        SQLGetData(stmt, 1, SQL_C_DOUBLE, &pagos, 0, &ind_pagos);
-        if (ind_pagos == SQL_NULL_DATA) pagos = 0.0;
-    }
-    SQLCloseCursor(stmt);
-
-    ret = SQLPrepare(stmt, (SQLCHAR*)"SELECT SUM(quantityOrdered * priceEach) FROM orderdetails JOIN orders ON orderdetails.orderNumber = orders.orderNumber WHERE orders.customerNumber = ?", SQL_NTS);
-    SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER, 0, 0, &customernumber, 0, NULL);
-    SQLExecute(stmt);
-    if (SQL_SUCCEEDED(SQLFetch(stmt))) {
-        SQLGetData(stmt, 1, SQL_C_DOUBLE, &compras, 0, &ind_compras);
-        if (ind_compras == SQL_NULL_DATA) compras = 0.0;
-    }
-
-    printf("Balance: %.2f\n", pagos - compras);
-    SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+    } while (choice != 4);
 }

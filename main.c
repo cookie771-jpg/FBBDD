@@ -2,12 +2,14 @@
 #include <stdlib.h>
 #include "odbc.h"
 #include "customers.h"
+#include "pagination.h"
 
 int main(void) {
     SQLHENV env = SQL_NULL_HENV;
     SQLHDBC dbc = SQL_NULL_HDBC;
     SQLRETURN ret;
     int opcion = 0;
+    char line[16];
 
     ret = odbc_connect(&env, &dbc);
     if (!SQL_SUCCEEDED(ret)) {
@@ -22,7 +24,8 @@ int main(void) {
         printf("3. Customers\n");
         printf("4. Exit\n");
         printf("Enter a number that corresponds to your choice > ");
-        scanf("%d", &opcion);
+        if (read_line(line, sizeof(line)) != 0) break;
+        opcion = atoi(line);
 
         switch (opcion) {
             case 1: printf("Pendiente Persona A\n"); break;
