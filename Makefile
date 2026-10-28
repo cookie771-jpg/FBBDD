@@ -19,7 +19,7 @@ PG_DUMP = pg_dump
 PG_RESTORE = pg_restore
 
 # Archivos de cabecera
-HEADERS = odbc.h
+HEADERS = odbc.h customers.h pagination.h
 
 # Ejecutables
 ODBC_EXE = odbc-connection-test odbc-connection-test-2 odbc-example1 odbc-example2 odbc-example3 odbc-example4
@@ -34,13 +34,16 @@ ALL_EXE = $(ODBC_EXE) $(MENU_EXE)
 # Compila todo (ODBC + menu)
 all: $(ALL_EXE)
 
+# Regla que pide el PDF
+compile: $(MENU_EXE)
+
 # Compila únicamente los programas de ODBC
 odbc: $(ODBC_EXE)
 
 # Compila únicamente el programa menu
 menu: $(MENU_EXE)
 
-# Compilación de archivos objeto con dependencia del header odbc.h
+# Compilación de archivos objeto con dependencia de los headers
 %.o: %.c $(HEADERS)
 	@echo Compilando $<...
 	$(CC) $(CFLAGS) -c -o $@ $<
@@ -49,8 +52,8 @@ menu: $(MENU_EXE)
 $(ODBC_EXE): % : %.o odbc.o
 	$(CC) -o $@ $^ $(LDLIBS)
 
-# Vinculación del ejecutable menu (con menu.o y odbc.o)
-$(MENU_EXE): menu.o odbc.o
+# Vinculación del ejecutable menu (con todos vuestros archivos)
+$(MENU_EXE): menu.o customers.o pagination.o odbc.o
 	$(CC) -o $@ $^ $(LDLIBS)
 
 # -----------------------------------------------------------------
@@ -96,6 +99,6 @@ clean-odbc:
 
 # Limpia solo el ejecutable y objeto del menú
 clean-menu:
-	rm -f $(MENU_EXE) menu.o
+	rm -f $(MENU_EXE) menu.o customers.o pagination.o
 
-.PHONY: all odbc menu clean clean-odbc clean-menu test01 createdb dropdb dump restore psql shell
+.PHONY: all compile odbc menu clean clean-odbc clean-menu test01 createdb dropdb dump restore psql shell
