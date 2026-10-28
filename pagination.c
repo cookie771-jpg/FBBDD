@@ -10,7 +10,7 @@
  * @param buf destination buffer
  * @param size size of buf
  * @return 0 if a line was read, -1 on EOF/error
- * @author Persona B
+ * @author 
  */
 int read_line(char *buf, int size) {
     size_t len;
@@ -29,7 +29,7 @@ int read_line(char *buf, int size) {
 /**
  * @brief Prints the current row of stmt: all columns separated by a space.
  * @param stmt statement positioned on a row
- * @author Persona B
+ * @author
  */
 static void print_row(SQLHSTMT stmt) {
     SQLSMALLINT ncols = 0, i;
@@ -59,7 +59,7 @@ static void print_row(SQLHSTMT stmt) {
  * @param stmt prepared statement
  * @param has_next out: 1 if there are more rows after this page
  * @return number of rows printed, or -1 on error
- * @author Persona B
+ * @author 
  */
 static int show_page(SQLHSTMT stmt, int *has_next) {
     int rows = 0;
@@ -79,7 +79,7 @@ static int show_page(SQLHSTMT stmt, int *has_next) {
  * @param has_next 1 if '>' is available
  * @param has_prev 1 if '<' is available
  * @return '>' , '<' or 'q' (also on EOF)
- * @author Persona B
+ * @author 
  */
 static char ask_key(int page, int has_next, int has_prev) {
     char line[32];
@@ -107,7 +107,7 @@ static char ask_key(int page, int has_next, int has_prev) {
  * @param stmt prepared statement with its parameters bound
  * @param nparams number of parameters bound by the caller
  * @return 0 on success, -1 on error
- * @author Persona B
+ * @author 
  */
 int paginate(SQLHSTMT stmt, int nparams) {
     SQLINTEGER limit = PAGE_SIZE + 1;

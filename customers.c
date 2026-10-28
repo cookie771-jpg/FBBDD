@@ -40,7 +40,7 @@
  * @brief Asks for a customer number.
  * @param out where the number is stored
  * @return 0 if a valid number was read, -1 otherwise
- * @author Persona B
+ * @author 
  */
 static int ask_customer_number(SQLINTEGER *out) {
     char line[32];
@@ -61,7 +61,7 @@ static int ask_customer_number(SQLINTEGER *out) {
 /**
  * @brief Customers -> Find: search by contact first or last name.
  * @param dbc open connection
- * @author Persona B
+ * @author 
  */
 static void customers_find(SQLHDBC dbc) {
     SQLHSTMT stmt = SQL_NULL_HSTMT;
@@ -88,7 +88,7 @@ static void customers_find(SQLHDBC dbc) {
 /**
  * @brief Customers -> List Products: products ordered by a customer.
  * @param dbc open connection
- * @author Persona B
+ * @author 
  */
 static void customers_list_products(SQLHDBC dbc) {
     SQLHSTMT stmt = SQL_NULL_HSTMT;
@@ -110,7 +110,7 @@ static void customers_list_products(SQLHDBC dbc) {
 /**
  * @brief Customers -> Balance: payments minus purchases (no pagination).
  * @param dbc open connection
- * @author Persona B
+ * @author 
  */
 static void customers_balance(SQLHDBC dbc) {
     SQLHSTMT stmt = SQL_NULL_HSTMT;
@@ -141,7 +141,7 @@ static void customers_balance(SQLHDBC dbc) {
 /**
  * @brief Customers submenu loop.
  * @param dbc open connection
- * @author Persona B
+ * @author 
  */
 void menu_customers(SQLHDBC dbc) {
     char line[16];
