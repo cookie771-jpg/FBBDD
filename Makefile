@@ -34,7 +34,7 @@ ALL_EXE = $(ODBC_EXE) $(MENU_EXE)
 # Compila todo (ODBC + menu)
 all: $(ALL_EXE)
 
-# Regla que pide el PDF
+
 compile: $(MENU_EXE)
 
 # Compila únicamente los programas de ODBC
