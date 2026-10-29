@@ -1,5 +1,3 @@
+.gitignore
 *.o
 *.exe
-/bin
-test01.sql
-obdc-*

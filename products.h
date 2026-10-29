@@ -1,13 +1,13 @@
 #ifndef PRODUCTS_H
 #define PRODUCTS_H
 
-typedef struct {
-    int productcode;
-    char productname[100];
-} product;
+#include <sql.h>
+#include <sqlext.h>
 
 int stockProductsMenu();
-product findProductsMenu();
+
+int findProductsMenu();
+
 void backProductsMenu();
 
 #endif
