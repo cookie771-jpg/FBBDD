@@ -4,7 +4,6 @@
 #include <sql.h>
 #include <sqlext.h>
 #include "odbc.h"
-#include <stdio.h>
 
 /*
  * example 3 with a queries build on-the-fly, the bad way
