@@ -45,6 +45,7 @@ int products_stock() {
     (void) fflush(stdout);
 
     while (scanf("%511s", productcode) != EOF) {
+        getchar();
         cbProductCode = SQL_NTS;
         (void) SQLBindParameter(stmt, 1, SQL_PARAM_INPUT,
                                 SQL_C_CHAR, SQL_CHAR,
@@ -55,7 +56,11 @@ int products_stock() {
 
             /* Loop through the rows in the result-set */
             if (SQL_SUCCEEDED(ret = SQLFetch(stmt))) {
-                printf("quantityinstock = %d\n", quantityinstock);
+                printf("\nquantityinstock = %d\n", quantityinstock);
+                (void) SQLCloseCursor(stmt);
+                (void) fflush(stdout);
+
+                break;
             } else {
                 printf("No data found for productcode: %s\n", productcode);
             }
@@ -98,6 +103,7 @@ int products_find() {
     char productname[BufferLength] = "\0";
     char buf[2*BufferLength] = "%";
     int bufLen;
+    int flag = 0;
 
     /* CONNECT */
     ret = odbc_connect(&env, &dbc);
@@ -150,6 +156,7 @@ int products_find() {
         /* Loop through the rows in the result-set */
         while (SQL_SUCCEEDED(ret = SQLFetch(stmt))) {
             printf("%s \t %s\n", productcode, productname);
+            flag = 1;
         }
 
         ret2 = SQLCloseCursor(stmt);
@@ -159,8 +166,10 @@ int products_find() {
             odbc_disconnect(env, dbc);
             return EXIT_FAILURE;
         }
+/*
+        if (flag == 0)
+            printf("Enter productname > ");*/
 
-        printf("Enter productname > ");
         (void) fflush(stdout);
     }
 
@@ -184,10 +193,11 @@ int products_find() {
 }
 
 void menu_products(SQLHDBC dbc) {
-    char line[16];
+    char line[16] = "\0";
     int choice = 0;
 
     do {
+        printf("--- PRODUCTS' MENU --- \n");
         printf("\n (1) Stock\n (2) Find Product\n (3) Back\n\n");
         printf(PROMPT);
         if (read_line(line, sizeof(line)) != 0) return;
@@ -197,7 +207,7 @@ void menu_products(SQLHDBC dbc) {
             case 1: products_stock(dbc); break;
             case 2: products_find(dbc); break;
             case 3: break;
-            default: printf("You have entered an invalid choice. Please try again\n");
+            default: printf("\nYou have entered an invalid choice. Please try again\n");
         }
     } while (choice != 3);
 }
