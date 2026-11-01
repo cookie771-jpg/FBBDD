@@ -19,7 +19,7 @@ PG_DUMP = pg_dump
 PG_RESTORE = pg_restore
 
 # Archivos de cabecera
-HEADERS = odbc.h products.h customers.h pagination.h
+HEADERS = odbc.h products.h orders.h customers.h pagination.h
 
 # Ejecutables
 ODBC_EXE = odbc-connection-test odbc-connection-test-2 odbc-example1 odbc-example2 odbc-example3 odbc-example4
@@ -53,7 +53,7 @@ $(ODBC_EXE): % : %.o odbc.o
 	$(CC) -o $@ $^ $(LDLIBS)
 
 # Vinculación del ejecutable menu (con todos vuestros archivos)
-$(MENU_EXE): menu.o products.o customers.o pagination.o odbc.o
+$(MENU_EXE): menu.o products.o orders.o customers.o pagination.o odbc.o
 	$(CC) -o $@ $^ $(LDLIBS)
 
 # -----------------------------------------------------------------
@@ -105,6 +105,6 @@ clean-odbc:
 
 # Limpia solo el ejecutable y objeto del menú
 clean-menu:
-	rm -f $(MENU_EXE) menu.o products.o customers.o pagination.o
+	rm -f $(MENU_EXE) menu.o products.o orders.o customers.o pagination.o
 
 .PHONY: all compile odbc menu clean clean-odbc clean-menu test01 createdb dropdb dump restore psql shell

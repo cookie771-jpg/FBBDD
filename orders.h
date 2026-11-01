@@ -1,9 +1,16 @@
 #ifndef ORDERS_H
 #define ORDERS_H
 
-void openOrdersMenu();
-void rangeOrdersMenu();
-void detailOrdersMenu();
-void backOrdersMenu();
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sql.h>
+#include <sqlext.h>
+#include "odbc.h"
+
+int orders_open();
+int orders_range();
+int orders_detail();
+void menu_orders();
 
 #endif
