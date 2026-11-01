@@ -30,7 +30,7 @@ int main(void) {
 
         switch (opcion) {
             case 1: menu_products(dbc); break;
-            case 2: printf("Pendiente Persona A\n"); break;
+            case 2: menu_orders(dbc); break;
             case 3: menu_customers(dbc); break;
             case 4: printf("Saliendo...\n"); break;
             default: printf("Opcion no valida.\n");

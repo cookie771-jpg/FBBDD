@@ -9,6 +9,7 @@
 
 #define BufferLength 512
 #define DateLength 11
+#define PROMPT "Enter a number that corresponds to your choice > "
 
 int orders_open() {
     SQLHENV env = NULL;
@@ -211,4 +212,23 @@ int orders_detail(){
     }
 }
 
-    void menu_orders();
+void menu_orders(SQLHDBC dbc) {
+    char line[16] = "\0";
+    int choice = 0;
+
+    do {
+        printf("--- ORDERS' MENU --- \n");
+        printf("\n (1) Open\n (2) Range\n (3) Details\n (4) Back\n\n");
+        printf(PROMPT);
+        if (read_line(line, sizeof(line)) != 0) return;
+        choice = atoi(line);
+
+        switch (choice) {
+            case 1: orders_open(dbc); break;
+            case 2: orders_range(dbc); break;
+            case 3: orders_detail(dbc); break;
+            case 4: break;
+            default: printf("\nYou have entered an invalid choice. Please try again\n");
+        }
+    } while (choice != 4);
+}

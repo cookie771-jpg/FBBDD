@@ -11,6 +11,6 @@
 int orders_open();
 int orders_range();
 int orders_detail();
-void menu_orders();
+void menu_orders(SQLHDBC dbc);
 
 #endif
