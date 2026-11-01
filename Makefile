@@ -1,6 +1,7 @@
-#Makefile # Compilador y flags
+# Makefile Práctica 2 de Ziqi Zhoulin y José Miguel Romero Oubiña
+# Compilador y flags
 CC = gcc -g
-CFLAGS = -Wall -Wextra -pedantic -ansi
+CFLAGS = -Wall -Wextra -pedantic #-ansi
 LDLIBS = -lodbc
 
 # Variables de entorno para PostgreSQL
@@ -24,6 +25,7 @@ HEADERS = odbc.h products.h orders.h customers.h pagination.h
 # Ejecutables
 ODBC_EXE = odbc-connection-test odbc-connection-test-2 odbc-example1 odbc-example2 odbc-example3 odbc-example4
 MENU_EXE = menu
+MENU_OBJ = menu.o products.o orders.o customers.o pagination.o odbc.o
 
 ALL_EXE = $(ODBC_EXE) $(MENU_EXE)
 
@@ -33,9 +35,6 @@ ALL_EXE = $(ODBC_EXE) $(MENU_EXE)
 
 # Compila todo (ODBC + menu)
 all: $(ALL_EXE)
-
-
-compile: $(MENU_EXE)
 
 # Compila únicamente los programas de ODBC
 odbc: $(ODBC_EXE)
@@ -53,7 +52,7 @@ $(ODBC_EXE): % : %.o odbc.o
 	$(CC) -o $@ $^ $(LDLIBS)
 
 # Vinculación del ejecutable menu (con todos vuestros archivos)
-$(MENU_EXE): menu.o products.o orders.o customers.o pagination.o odbc.o
+$(MENU_EXE): $(MENU_OBJ)
 	$(CC) -o $@ $^ $(LDLIBS)
 
 # -----------------------------------------------------------------
@@ -90,6 +89,9 @@ shell:
 # -----------------------------------------------------------------
 run:
 	./menu
+
+vrun:
+	valgrind --leak-check=full -s ./menu
 
 # -----------------------------------------------------------------
 # Limpieza

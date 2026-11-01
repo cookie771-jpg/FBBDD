@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "odbc.h"
 #include "products.h"
+#include "orders.h"
 #include "customers.h"
 #include "pagination.h"
 

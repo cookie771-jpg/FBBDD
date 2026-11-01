@@ -103,7 +103,6 @@ int products_find() {
     char productname[BufferLength] = "\0";
     char buf[2*BufferLength] = "%";
     int bufLen;
-    int flag = 0;
 
     /* CONNECT */
     ret = odbc_connect(&env, &dbc);
@@ -156,7 +155,6 @@ int products_find() {
         /* Loop through the rows in the result-set */
         while (SQL_SUCCEEDED(ret = SQLFetch(stmt))) {
             printf("%s \t %s\n", productcode, productname);
-            flag = 1;
         }
 
         ret2 = SQLCloseCursor(stmt);

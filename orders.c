@@ -62,7 +62,7 @@ int orders_open() {
         return EXIT_FAILURE;
     }
 
-    return EXIT_FAILURE;
+    return EXIT_SUCCESS;
     }
 
 int orders_range(){
@@ -75,6 +75,7 @@ int orders_range(){
     char orderdate[DateLength]="\0";
     char shippeddate[DateLength]="\0";
     char guion;
+    SQLLEN ind_shipped = 0;
 
 
     /* CONECT */
@@ -94,7 +95,8 @@ int orders_range(){
     printf("Enter dates (YYYY-MM-DD - YYYY-MM-DD) > ");
     (void)fflush(stdout);
 
-    if (scanf("%s %c %s", orderdate, &guion, shippeddate) != EOF){
+    if (scanf("%10s %c %10s", orderdate, &guion, shippeddate) != EOF){
+        getchar();
         (void) SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_TYPE_DATE, 0, 0, orderdate, DateLength, NULL);
         (void) SQLBindParameter(stmt, 2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_TYPE_DATE, 0, 0, shippeddate, DateLength, NULL);
         
@@ -102,15 +104,14 @@ int orders_range(){
 
         (void) SQLBindCol(stmt, 1, SQL_INTEGER, (SQLPOINTER) &ordernumber, 0, NULL);
         (void) SQLBindCol(stmt, 2, SQL_CHAR, (SQLCHAR*) orderdate, DateLength, NULL);
-        (void) SQLBindCol(stmt, 3, SQL_CHAR, (SQLCHAR*) shippeddate, DateLength, NULL);
+        (void) SQLBindCol(stmt, 3, SQL_CHAR, (SQLCHAR*) shippeddate, DateLength, &ind_shipped);
     
-        do {
-            ret = SQLFetch (stmt);
-            if (ret != SQL_SUCCESS) strcpy(shippeddate, "NOTSHIPPED");
-                if (ret != SQL_NO_DATA) {
-                    printf("%d %s %s\n", ordernumber, orderdate, shippeddate);
-                }
-        } while (ret == SQL_SUCCESS || ret != SQL_NO_DATA);
+        while (SQL_SUCCEEDED(ret = SQLFetch(stmt))) {
+            if (ind_shipped == SQL_NULL_DATA) {
+                strcpy(shippeddate, "NOTSHIPPED");
+            }
+            printf("%d %s %s\n", ordernumber, orderdate, shippeddate);
+        }
 
    
         (void) SQLCloseCursor(stmt);
@@ -132,7 +133,7 @@ int orders_range(){
     return EXIT_FAILURE;
     }
 
-    return EXIT_FAILURE; 
+    return EXIT_SUCCESS; 
     }
 
 int orders_detail(){
@@ -168,6 +169,7 @@ int orders_detail(){
     (void)fflush(stdout);
 
     if (scanf("%d", &ordernumber) == 1){
+        getchar();
         (void) SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &ordernumber, 0, NULL);
 
         (void) SQLExecute(stmt);
@@ -210,6 +212,8 @@ int orders_detail(){
     if (!SQL_SUCCEEDED(ret)){
         return EXIT_FAILURE;
     }
+
+    return EXIT_SUCCESS;
 }
 
 void menu_orders(SQLHDBC dbc) {
