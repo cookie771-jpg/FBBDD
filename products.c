@@ -44,7 +44,7 @@ int products_stock() {
     printf("Enter productcode > ");
     (void) fflush(stdout);
 
-    while (scanf("%511s", productcode) != EOF) {
+    if (scanf("%511s", productcode) != EOF) {
         getchar();
         cbProductCode = SQL_NTS;
         (void) SQLBindParameter(stmt, 1, SQL_PARAM_INPUT,
@@ -60,7 +60,7 @@ int products_stock() {
                 (void) SQLCloseCursor(stmt);
                 (void) fflush(stdout);
 
-                break;
+                
             } else {
                 printf("No data found for productcode: %s\n", productcode);
             }
@@ -69,7 +69,6 @@ int products_stock() {
         }
 
         (void) SQLCloseCursor(stmt);
-        printf("Enter productcode > ");
         (void) fflush(stdout);
     }
     printf("\n");

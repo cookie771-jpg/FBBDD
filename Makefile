@@ -91,7 +91,18 @@ run:
 	./menu
 
 vrun:
-	valgrind --leak-check=full -s ./menu
+	valgrind --leak-check=full --show-leak-kinds=all -s ./menu
+
+splint:
+	./products_find.sh 
+	./products_stock.sh 
+	./orders_open.sh 
+	./orders_range.sh 
+	./orders_detail.sh 
+	./customers_find.sh 
+	./customers_list_products_paginated.sh
+	./customers_list_products.sh 
+	./customers_balance.sh 
 
 # -----------------------------------------------------------------
 # Limpieza
