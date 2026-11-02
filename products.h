@@ -9,7 +9,7 @@
 #include "odbc.h"
 
 
-int products_stock();
-int products_find();
+/*int products_stock();
+int products_find();*/
 void menu_products(SQLHDBC dbc);
 #endif /* PRODUCTS_H */

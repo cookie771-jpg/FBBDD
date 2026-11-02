@@ -9,7 +9,7 @@
 
 #define PROMPT "Enter a number that corresponds to your choice > "
 
-int products_stock() {
+static int products_stock() {
     SQLHENV env = NULL;
     SQLHDBC dbc = NULL;
     SQLHSTMT stmt = NULL;
@@ -91,7 +91,7 @@ int products_stock() {
 }
 
 
-int products_find() {
+static int products_find() {
     SQLHENV env = NULL;
     SQLHDBC dbc = NULL;
     SQLHSTMT stmt = NULL;
@@ -197,7 +197,7 @@ void menu_products(SQLHDBC dbc) {
         printf("--- PRODUCTS' MENU --- \n");
         printf("\n (1) Stock\n (2) Find Product\n (3) Back\n\n");
         printf(PROMPT);
-        if (read_line(line, sizeof(line)) != 0) return;
+        if (read_line(line, (int) sizeof(line)) != 0) return;
         choice = atoi(line);
 
         switch (choice) {

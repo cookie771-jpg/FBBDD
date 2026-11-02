@@ -11,9 +11,9 @@ int main(void) {
     SQLHDBC dbc = SQL_NULL_HDBC;
     SQLRETURN ret;
     int opcion = 0;
-    char line[16];
+    char line[16] = "\0";
 
-    ret = odbc_connect(&env, &dbc);
+    ret = (SQLRETURN) odbc_connect(&env, &dbc);
     if (!SQL_SUCCEEDED(ret)) {
         fprintf(stderr, "Error al conectar.\n");
         return EXIT_FAILURE;
@@ -26,7 +26,7 @@ int main(void) {
         printf("3. Customers\n");
         printf("4. Exit\n");
         printf("Enter a number that corresponds to your choice > ");
-        if (read_line(line, sizeof(line)) != 0) break;
+        if (read_line(line, (int) sizeof(line)) != 0) break;
         opcion = atoi(line);
 
         switch (opcion) {

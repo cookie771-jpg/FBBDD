@@ -11,7 +11,7 @@
 #define DateLength 11
 #define PROMPT "Enter a number that corresponds to your choice > "
 
-int orders_open() {
+static int orders_open() {
     SQLHENV env = NULL;
     SQLHDBC dbc = NULL;
     SQLHSTMT stmt = NULL;
@@ -63,9 +63,9 @@ int orders_open() {
     }
 
     return EXIT_SUCCESS;
-    }
+}
 
-int orders_range(){
+static int orders_range(){
     SQLHENV env = NULL;
     SQLHDBC dbc = NULL;
     SQLHSTMT stmt = NULL;
@@ -134,9 +134,9 @@ int orders_range(){
     }
 
     return EXIT_SUCCESS; 
-    }
+}
 
-int orders_detail(){
+static int orders_detail(){
     SQLHENV env = NULL;
     SQLHDBC dbc = NULL;
     SQLHSTMT stmt = NULL;
@@ -224,7 +224,7 @@ void menu_orders(SQLHDBC dbc) {
         printf("--- ORDERS' MENU --- \n");
         printf("\n (1) Open\n (2) Range\n (3) Details\n (4) Back\n\n");
         printf(PROMPT);
-        if (read_line(line, sizeof(line)) != 0) return;
+        if (read_line(line, (int) sizeof(line)) != 0) return;
         choice = atoi(line);
 
         switch (choice) {

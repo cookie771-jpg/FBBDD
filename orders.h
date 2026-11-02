@@ -8,9 +8,9 @@
 #include <sqlext.h>
 #include "odbc.h"
 
-int orders_open();
+/*int orders_open();
 int orders_range();
-int orders_detail();
+int orders_detail();*/
 void menu_orders(SQLHDBC dbc);
 
 #endif

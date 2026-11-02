@@ -43,12 +43,12 @@
  * @author 
  */
 static int ask_customer_number(SQLINTEGER *out) {
-    char line[32];
-    char *end;
+    char line[32] = "\0";
+    char *end = NULL;
     long value;
 
     printf("Enter customer number > ");
-    if (read_line(line, sizeof(line)) != 0) return -1;
+    if (read_line(line, (int) sizeof(line)) != 0) return -1;
     value = strtol(line, &end, 10);
     if (end == line || *end != '\0') {
         printf("Invalid customer number.\n");
@@ -65,12 +65,12 @@ static int ask_customer_number(SQLINTEGER *out) {
  */
 static void customers_find(SQLHDBC dbc) {
     SQLHSTMT stmt = SQL_NULL_HSTMT;
-    char text[NAME_MAX_LEN + 1];
-    char pattern[NAME_MAX_LEN + 3];
+    char text[NAME_MAX_LEN + 1] = "\0";
+    char pattern[NAME_MAX_LEN + 3] = "\0";
 
     printf("Enter customer name > ");
-    if (read_line(text, sizeof(text)) != 0) return;
-    sprintf(pattern, "%%%s%%", text);
+    if (read_line(text, (int) sizeof(text)) != 0) return;
+    snprintf(pattern, sizeof(pattern), "%%%s%%", text);
 
     if (!SQL_SUCCEEDED(SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt))) return;
     if (SQL_SUCCEEDED(SQLPrepare(stmt, (SQLCHAR *)SQL_FIND, SQL_NTS))) {
@@ -144,13 +144,13 @@ static void customers_balance(SQLHDBC dbc) {
  * @author 
  */
 void menu_customers(SQLHDBC dbc) {
-    char line[16];
+    char line[16] = "\0";
     int choice = 0;
 
     do {
         printf("\n (1) Find\n (2) List Products\n (3) Balance\n (4) Back\n\n");
         printf(PROMPT);
-        if (read_line(line, sizeof(line)) != 0) return;
+        if (read_line(line, (int) sizeof(line)) != 0) return;
         choice = atoi(line);
 
         switch (choice) {

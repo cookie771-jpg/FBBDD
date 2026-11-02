@@ -32,12 +32,15 @@ int read_line(char *buf, int size) {
  * @author
  */
 static void print_row(SQLHSTMT stmt) {
-    SQLSMALLINT ncols = 0, i;
-    SQLLEN ind;
-    char buf[COL_BUF];
-
-    SQLNumResultCols(stmt, &ncols);
-    for (i = 1; i <= ncols; i++) {
+    SQLSMALLINT ncols = 0;
+    SQLUSMALLINT i = 0;
+   /**/ SQLUSMALLINT u_ncols = 0;
+    SQLLEN ind = 0;
+    char buf[COL_BUF] = "\0";
+/*(VOID) AÑADIDO DESPUES*/
+    (void) SQLNumResultCols(stmt, &ncols);
+    /**/ u_ncols = (SQLUSMALLINT) ncols;
+    for (i = 1; i <= u_ncols; i++) {
         if (i > 1) printf(" ");
         ind = 0;
         if (SQL_SUCCEEDED(SQLGetData(stmt, i, SQL_C_CHAR, buf, COL_BUF, &ind))
@@ -82,17 +85,17 @@ static int show_page(SQLHSTMT stmt, int *has_next) {
  * @author 
  */
 static char ask_key(int page, int has_next, int has_prev) {
-    char line[32];
+    char line[32] = "\0";
 
     for (;;) {
         printf("-- Page %d -- ", page);
-        if (has_prev) printf("[<] previous  ");
-        if (has_next) printf("[>] next  ");
+        if (has_prev != 0) printf("[<] previous  ");
+        if (has_next != 0) printf("[>] next  ");
         printf("[q] back > ");
-        if (read_line(line, sizeof(line)) != 0) return 'q';
+        if (read_line(line, (int) sizeof(line)) != 0) return 'q';
         if (line[0] == 'q' || line[0] == 'Q') return 'q';
-        if (line[0] == '>' && has_next) return '>';
-        if (line[0] == '<' && has_prev) return '<';
+        if ((line[0] == '>') && (has_next != 0)) return '>';
+        if ((line[0] == '<') && (has_prev != 0)) return '<';
         printf("Option not available.\n");
     }
 }
@@ -113,8 +116,8 @@ int paginate(SQLHSTMT stmt, int nparams) {
     SQLINTEGER limit = PAGE_SIZE + 1;
     SQLINTEGER offset = 0;
     SQLRETURN ret;
-    int rows, has_next;
-    char key;
+    int rows = 0, has_next = 0;
+    char key = '\0';
 
     SQLBindParameter(stmt, (SQLUSMALLINT)(nparams + 1), SQL_PARAM_INPUT,
                      SQL_C_SLONG, SQL_INTEGER, 0, 0, &limit, 0, NULL);
@@ -132,9 +135,9 @@ int paginate(SQLHSTMT stmt, int nparams) {
             printf("No results found.\n");
             return 0;
         }
-        if (!has_next && offset == 0) return 0;
+        if (has_next == 0 && offset == 0) return 0;
 
-        key = ask_key((int)(offset / PAGE_SIZE) + 1, has_next, offset > 0);
+        key = ask_key((int)(offset / PAGE_SIZE) + 1, has_next, (offset > 0) ? 1 : 0);
         if (key == '>') offset += PAGE_SIZE;
         else if (key == '<') offset -= PAGE_SIZE;
         else return 0;
