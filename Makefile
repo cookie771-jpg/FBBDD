@@ -91,9 +91,16 @@ run:
 	./menu
 
 vrun:
-	valgrind --leak-check=full --show-leak-kinds=all -s ./menu
-
+	valgrind --leak-check=full \
+         --show-leak-kinds=all \
+         --track-origins=yes \
+         --errors-for-leak-kinds=all \
+         --error-exitcode=1 \
+         ./menu
 splint:
+	splint -nullpass *.c *.h > splint.log 2>&1
+
+bash:
 	./products_find.sh 
 	./products_stock.sh 
 	./orders_open.sh 
@@ -101,8 +108,8 @@ splint:
 	./orders_detail.sh 
 	./customers_find.sh 
 	./customers_list_products_paginated.sh
-	./customers_list_products.sh 
-	./customers_balance.sh 
+	./customers_balance.sh
+	./customers_list_products.sh  
 
 # -----------------------------------------------------------------
 # Limpieza
