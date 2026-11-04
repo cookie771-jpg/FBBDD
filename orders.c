@@ -228,9 +228,9 @@ void menu_orders(SQLHDBC dbc) {
         choice = atoi(line);
 
         switch (choice) {
-            case 1: orders_open(dbc); break;
-            case 2: orders_range(dbc); break;
-            case 3: orders_detail(dbc); break;
+            case 1: orders_open(); break;
+            case 2: orders_range(); break;
+            case 3: orders_detail(); break;
             case 4: break;
             default: printf("\nYou have entered an invalid choice. Please try again\n");
         }

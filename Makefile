@@ -17,24 +17,18 @@ PG_RESTORE = pg_restore
 
 HEADERS = odbc.h products.h orders.h customers.h pagination.h
 
-ODBC_EXE = odbc-connection-test odbc-connection-test-2 odbc-example1 odbc-example2 odbc-example3 odbc-example4
 MENU_EXE = menu
 MENU_OBJ = menu.o products.o orders.o customers.o pagination.o odbc.o
 
 ALL_EXE = $(ODBC_EXE) $(MENU_EXE)
 
-all: dropdb createdb restore
+all: classic compile
 
 compile: $(MENU_EXE)
-
-odbc: $(ODBC_EXE)
 
 %.o: %.c $(HEADERS)
 	@echo Compilando $<...
 	$(CC) $(CFLAGS) -c -o $@ $<
-
-$(ODBC_EXE): % : %.o odbc.o
-	$(CC) -o $@ $^ $(LDLIBS)
 
 $(MENU_EXE): $(MENU_OBJ)
 	$(CC) -o $@ $^ $(LDLIBS)
