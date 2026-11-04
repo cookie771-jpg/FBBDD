@@ -1,3 +1,8 @@
+/**
+ * @file menu.c
+ * @author Ziqi Zhoulin y José Miguel Romero Oubiña
+ * @brief Main menu of the program
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include "odbc.h"
@@ -6,6 +11,10 @@
 #include "customers.h"
 #include "pagination.h"
 
+/**
+ * @brief Main function of the program
+ * @return int
+ */
 int main(void) {
     SQLHENV env = SQL_NULL_HENV;
     SQLHDBC dbc = SQL_NULL_HDBC;
@@ -20,7 +29,7 @@ int main(void) {
     }
 
     do {
-        printf("\n--- MENU PRINCIPAL ---\n");
+        printf("\n--- MAIN MENU ---\n");
         printf("1. Products\n");
         printf("2. Orders\n");
         printf("3. Customers\n");
@@ -33,8 +42,8 @@ int main(void) {
             case 1: menu_products(dbc); break;
             case 2: menu_orders(dbc); break;
             case 3: menu_customers(dbc); break;
-            case 4: printf("Saliendo...\n"); break;
-            default: printf("Opcion no valida.\n");
+            case 4: printf("Exiting...\n"); break;
+            default: printf("\nYou have entered an invalid choice. Please try again\n");
         }
     } while (opcion != 4);
 

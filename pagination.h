@@ -1,18 +1,33 @@
+/**
+ * @file pagination.h
+ * @author Ziqi Zhoulin
+ * @brief Header file for pagination functions
+ */
 #ifndef PAGINATION_H
 #define PAGINATION_H
 
 #include <sql.h>
 
-/* Number of rows shown on each screen. */
+/** @brief Number of rows shown on each screen. */
 #define PAGE_SIZE 10
 
-/* Reads one line from stdin (without the trailing newline).
- * Returns 0 on success, -1 on EOF. */
+/** @brief Buffer size for each column. */
+#define COL_BUF 256
+
+/** @brief Reads one line from stdin (without the trailing newline).
+ * @param buf Buffer to store the input.
+ * @param size Size of the buffer.
+ * @author Ziqi Zhoulin
+ * @return 0 on success, -1 on EOF.
+ */
 int read_line(char *buf, int size);
 
-/* Runs an already prepared (and bound) statement page by page.
- * The SQL must end with "LIMIT ? OFFSET ?" and its other parameters must be
- * parameters 1..nparams. Returns 0 if everything went fine, -1 on error. */
+/** @brief Runs an already prepared (and bound) statement page by page.
+ * @param stmt Statement handle.
+ * @param nparams Number of parameters in the statement.
+ * @author Ziqi Zhoulin
+ * @return 0 on success, -1 on error.
+ */
 int paginate(SQLHSTMT stmt, int nparams);
 
-#endif
+#endif /* PAGINATION_H */

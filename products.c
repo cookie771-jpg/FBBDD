@@ -12,6 +12,9 @@
 #include "odbc.h"
 #include "pagination.h"
 
+/** @brief Buffer length for string operations */
+#define BufferLength 512
+
 /** @brief Menu's prompt to choose the action you want  */
 #define PROMPT "Enter a number that corresponds to your choice > "
 
@@ -25,17 +28,15 @@ static void products_stock(SQLHDBC dbc) {
     SQLHSTMT stmt = SQL_NULL_HSTMT;
     int ret; /* odbc.c */
     SQLRETURN ret2; /* ODBC API return status */
-    #define BufferLength 512
-    int  quantityinstock = 0;
+    int quantityinstock = 0;
     char productcode[BufferLength] = "\0";
     SQLLEN cbProductCode = SQL_NTS;
-
 
     /* Allocate a statement handle */
     ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
     if (!SQL_SUCCEEDED(ret)) { return; }
 
-    /* Prepares the SQL query */
+    /* Prepares the SQL statement */
     ret = SQLPrepare(stmt, (SQLCHAR*) "SELECT quantityinstock FROM products WHERE productcode = ?", SQL_NTS);
     if (!SQL_SUCCEEDED(ret)) {
         odbc_extract_error("", stmt, SQL_HANDLE_STMT);
@@ -59,7 +60,7 @@ static void products_stock(SQLHDBC dbc) {
 
             /* If the productcode exists, prints the stock available */
             if (SQL_SUCCEEDED(ret = SQLFetch(stmt))) {
-                printf("\nquantityinstock = %d\n", quantityinstock);
+                printf("\nQuantity of %s in stock: %d\n", productcode, quantityinstock);
                 (void) SQLCloseCursor(stmt);
                 (void) fflush(stdout);
 
@@ -87,26 +88,26 @@ static void products_stock(SQLHDBC dbc) {
 }
 
 /**
- * @brief Function
+ * @brief Function that shows the products that match with the name you enter
  * 
- * @param dbc 
+ * @param dbc connection handle
+ * @author José Miguel Romero Oubiña
  */
 static void products_find(SQLHDBC dbc) {
     SQLHSTMT stmt = SQL_NULL_HSTMT;
     int ret; /* odbc.c */
     SQLRETURN ret2; /* ODBC API return status */
-    #define BufferLength 512
     char productcode[BufferLength] = "\0";
     char productname[BufferLength] = "\0";
     char buf[2*BufferLength] = "%";
     int bufLen;
+    int flag = 0;
 
     /* Allocate a statement handle */
     ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
-    if (!SQL_SUCCEEDED(ret)) {
-        return;
-    }
+    if (!SQL_SUCCEEDED(ret)) { return; }
 
+    /* Prepare the SQL statement */
     ret = SQLPrepare(stmt, (SQLCHAR*) "SELECT p.productcode, p.productname FROM products p WHERE p.productname LIKE ? ORDER BY p.productcode", SQL_NTS);
     if (!SQL_SUCCEEDED(ret)) {
         odbc_extract_error("", stmt, SQL_HANDLE_STMT);
@@ -143,7 +144,10 @@ static void products_find(SQLHDBC dbc) {
         /* Loop through the rows in the result-set */
         while (SQL_SUCCEEDED(ret = SQLFetch(stmt))) {
             printf("%s \t %s\n", productcode, productname);
+            flag = 1;
         }
+        /* if no data found */
+        if (flag == 0) { printf("No data found\n"); }
 
         ret2 = SQLCloseCursor(stmt);
         if (!SQL_SUCCEEDED(ret2)) {
@@ -154,7 +158,6 @@ static void products_find(SQLHDBC dbc) {
 
         (void) fflush(stdout);
     }
-
     printf("\n");
 
     /* free up statement handle */
@@ -167,13 +170,18 @@ static void products_find(SQLHDBC dbc) {
     return;
 }
 
+/**
+ * @brief Function that displays the products menu
+ * @author José Miguel Romero Oubiña
+ * @param dbc connection handle
+ */
 void menu_products(SQLHDBC dbc) {
     char line[16] = "\0";
     int choice = 0;
 
     do {
-        printf("--- PRODUCTS' MENU --- \n");
-        printf("\n (1) Stock\n (2) Find Product\n (3) Back\n\n");
+        printf("\n--- PRODUCTS' MENU ---\n");
+        printf(" (1) Stock\n (2) Find Product\n (3) Back\n\n");
         printf(PROMPT);
         if (read_line(line, (int) sizeof(line)) != 0) return;
         choice = atoi(line);

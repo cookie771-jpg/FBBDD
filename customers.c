@@ -1,3 +1,8 @@
+/**
+ * @file customers.c
+ * @author Ziqi Zhoulin
+ * @brief Implementation of customers functions
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,17 +10,20 @@
 #include "customers.h"
 #include "pagination.h"
 
+/** @brief Menu's prompt to choose the action you want */
 #define PROMPT "Enter a number that corresponds to your choice > "
+
+/** @brief Maximum length for customer name fields */
 #define NAME_MAX_LEN 50
 
-/* Customers whose contact first or last name contains the text (paginated). */
+/** @brief Customers whose contact first or last name contains the text (paginated) */
 #define SQL_FIND \
     "SELECT customernumber, customername, contactfirstname, contactlastname " \
     "FROM customers " \
     "WHERE contactfirstname LIKE ? OR contactlastname LIKE ? " \
     "ORDER BY customernumber LIMIT ? OFFSET ?"
 
-/* Total units per product ordered by one customer, all orders added (paginated). */
+/** @brief Total units per product ordered by one customer, all orders added (paginated) */
 #define SQL_LIST_PRODUCTS \
     "SELECT p.productname, SUM(od.quantityordered) " \
     "FROM orders o " \
@@ -25,9 +33,11 @@
     "GROUP BY p.productcode, p.productname " \
     "ORDER BY p.productcode LIMIT ? OFFSET ?"
 
-/* Payments minus purchases in ONE query. Two independent subqueries avoid
+/**
+ * @brief Payments minus purchases in ONE query. Two independent subqueries avoid
  * multiplying rows (payments x orderdetails). Returns no row if the
- * customer does not exist. */
+ * customer does not exist
+ */
 #define SQL_BALANCE \
     "SELECT (SELECT COALESCE(SUM(pa.amount), 0) FROM payments pa " \
     "         WHERE pa.customernumber = c.customernumber) " \
@@ -40,7 +50,7 @@
  * @brief Asks for a customer number.
  * @param out where the number is stored
  * @return 0 if a valid number was read, -1 otherwise
- * @author 
+ * @author Ziqi Zhoulin
  */
 static int ask_customer_number(SQLINTEGER *out) {
     char line[32] = "\0";
@@ -48,6 +58,8 @@ static int ask_customer_number(SQLINTEGER *out) {
     long value;
 
     printf("Enter customer number > ");
+
+    /* Read the input line */
     if (read_line(line, (int) sizeof(line)) != 0) return -1;
     value = strtol(line, &end, 10);
     if (end == line || *end != '\0') {
@@ -61,7 +73,7 @@ static int ask_customer_number(SQLINTEGER *out) {
 /**
  * @brief Customers -> Find: search by contact first or last name.
  * @param dbc open connection
- * @author 
+ * @author Ziqi Zhoulin
  */
 static void customers_find(SQLHDBC dbc) {
     SQLHSTMT stmt = SQL_NULL_HSTMT;
@@ -72,7 +84,10 @@ static void customers_find(SQLHDBC dbc) {
     if (read_line(text, (int) sizeof(text)) != 0) return;
     (void) snprintf(pattern, sizeof(pattern), "%%%s%%", text);
 
+    /* Allocate statement handle */
     if (!SQL_SUCCEEDED(SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt))) return;
+
+    /* Prepare the statement */
     if (SQL_SUCCEEDED(SQLPrepare(stmt, (SQLCHAR *)SQL_FIND, SQL_NTS))) {
         (void) SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR,
                          NAME_MAX_LEN + 2, 0, pattern, 0, NULL);
@@ -80,37 +95,47 @@ static void customers_find(SQLHDBC dbc) {
                          NAME_MAX_LEN + 2, 0, pattern, 0, NULL);
         (void) paginate(stmt, 2);
     } else {
+        /* Extract error information */
         odbc_extract_error("SQLPrepare", stmt, SQL_HANDLE_STMT);
     }
+    printf("\n");
+    /* Free the statement handle */
     (void) SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 }
 
 /**
  * @brief Customers -> List Products: products ordered by a customer.
  * @param dbc open connection
- * @author 
+ * @author Ziqi Zhoulin
  */
 static void customers_list_products(SQLHDBC dbc) {
     SQLHSTMT stmt = SQL_NULL_HSTMT;
     SQLINTEGER customer = 0;
 
+    /* Read the customer number */
     if (ask_customer_number(&customer) != 0) return;
 
+    /* Allocate statement handle */
     if (!SQL_SUCCEEDED(SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt))) return;
+
+    /* Prepare the statement */
     if (SQL_SUCCEEDED(SQLPrepare(stmt, (SQLCHAR *)SQL_LIST_PRODUCTS, SQL_NTS))) {
         (void) SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER,
                          0, 0, &customer, 0, NULL);
         (void) paginate(stmt, 1);
     } else {
+        /* Extract error information */
         odbc_extract_error("SQLPrepare", stmt, SQL_HANDLE_STMT);
     }
+    printf("\n");
+    /* Free the statement handle */
     (void) SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 }
 
 /**
  * @brief Customers -> Balance: payments minus purchases (no pagination).
  * @param dbc open connection
- * @author 
+ * @author Ziqi Zhoulin
  */
 static void customers_balance(SQLHDBC dbc) {
     SQLHSTMT stmt = SQL_NULL_HSTMT;
@@ -118,12 +143,17 @@ static void customers_balance(SQLHDBC dbc) {
     double balance = 0.0;
     SQLLEN ind = 0;
 
+    /* Read the customer number */
     if (ask_customer_number(&customer) != 0) return;
 
+    /* Allocate statement handle */
     if (!SQL_SUCCEEDED(SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt))) return;
+
+    /* Prepare the statement */
     if (SQL_SUCCEEDED(SQLPrepare(stmt, (SQLCHAR *)SQL_BALANCE, SQL_NTS))) {
         (void) SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER,
                          0, 0, &customer, 0, NULL);
+        /* Execute the statement */
         if (!SQL_SUCCEEDED(SQLExecute(stmt))) {
             odbc_extract_error("SQLExecute", stmt, SQL_HANDLE_STMT);
         } else if (SQL_SUCCEEDED(SQLFetch(stmt))) {
@@ -133,22 +163,27 @@ static void customers_balance(SQLHDBC dbc) {
             printf("Customer %ld not found.\n", (long)customer);
         }
     } else {
+        /* Extract error information */
         odbc_extract_error("SQLPrepare", stmt, SQL_HANDLE_STMT);
     }
+    printf("\n");
+    /* Free the statement handle */
     (void) SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 }
 
 /**
  * @brief Customers submenu loop.
  * @param dbc open connection
- * @author 
+ * @author Ziqi Zhoulin
  */
 void menu_customers(SQLHDBC dbc) {
     char line[16] = "\0";
     int choice = 0;
 
+    /* Display the menu and get user's choice */
     do {
-        printf("\n (1) Find\n (2) List Products\n (3) Balance\n (4) Back\n\n");
+        printf("\n--- CUSTOMERS' MENU ---\n");
+        printf(" (1) Find\n (2) List Products\n (3) Balance\n (4) Back\n\n");
         printf(PROMPT);
         if (read_line(line, (int) sizeof(line)) != 0) return;
         choice = atoi(line);

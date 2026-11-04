@@ -101,6 +101,6 @@ splint:
 # Limpieza
 # --------
 clean:
-	rm -f $(MENU_EXE) *.log *.o core
+	rm -f $(MENU_EXE) *.o core
 	
 .PHONY: all compile classic createdb dropdb dump restore psql shell run vrun bash splint clean

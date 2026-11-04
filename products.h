@@ -10,9 +10,9 @@
 #include "odbc.h"
 
 /**
- * @brief products' menu that allows to know the stock and to find the product you need
+ * @brief Function that displays the products menu
  * @author José Miguel Romero Oubiña
- * @param dbc 
+ * @param dbc connection handle
  */
 void menu_products(SQLHDBC dbc);
 #endif /* PRODUCTS_H */
