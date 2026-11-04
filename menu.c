@@ -38,6 +38,6 @@ int main(void) {
         }
     } while (opcion != 4);
 
-    odbc_disconnect(env, dbc);
+    (void) odbc_disconnect(env, dbc);
     return EXIT_SUCCESS;
 }

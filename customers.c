@@ -70,19 +70,19 @@ static void customers_find(SQLHDBC dbc) {
 
     printf("Enter customer name > ");
     if (read_line(text, (int) sizeof(text)) != 0) return;
-    snprintf(pattern, sizeof(pattern), "%%%s%%", text);
+    (void) snprintf(pattern, sizeof(pattern), "%%%s%%", text);
 
     if (!SQL_SUCCEEDED(SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt))) return;
     if (SQL_SUCCEEDED(SQLPrepare(stmt, (SQLCHAR *)SQL_FIND, SQL_NTS))) {
-        SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR,
+        (void) SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR,
                          NAME_MAX_LEN + 2, 0, pattern, 0, NULL);
-        SQLBindParameter(stmt, 2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR,
+        (void) SQLBindParameter(stmt, 2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_VARCHAR,
                          NAME_MAX_LEN + 2, 0, pattern, 0, NULL);
-        paginate(stmt, 2);
+        (void) paginate(stmt, 2);
     } else {
         odbc_extract_error("SQLPrepare", stmt, SQL_HANDLE_STMT);
     }
-    SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+    (void) SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 }
 
 /**
@@ -98,13 +98,13 @@ static void customers_list_products(SQLHDBC dbc) {
 
     if (!SQL_SUCCEEDED(SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt))) return;
     if (SQL_SUCCEEDED(SQLPrepare(stmt, (SQLCHAR *)SQL_LIST_PRODUCTS, SQL_NTS))) {
-        SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER,
+        (void) SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER,
                          0, 0, &customer, 0, NULL);
-        paginate(stmt, 1);
+        (void) paginate(stmt, 1);
     } else {
         odbc_extract_error("SQLPrepare", stmt, SQL_HANDLE_STMT);
     }
-    SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+    (void) SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 }
 
 /**
@@ -122,12 +122,12 @@ static void customers_balance(SQLHDBC dbc) {
 
     if (!SQL_SUCCEEDED(SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt))) return;
     if (SQL_SUCCEEDED(SQLPrepare(stmt, (SQLCHAR *)SQL_BALANCE, SQL_NTS))) {
-        SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER,
+        (void) SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_SLONG, SQL_INTEGER,
                          0, 0, &customer, 0, NULL);
         if (!SQL_SUCCEEDED(SQLExecute(stmt))) {
             odbc_extract_error("SQLExecute", stmt, SQL_HANDLE_STMT);
         } else if (SQL_SUCCEEDED(SQLFetch(stmt))) {
-            SQLGetData(stmt, 1, SQL_C_DOUBLE, &balance, 0, &ind);
+            (void) SQLGetData(stmt, 1, SQL_C_DOUBLE, &balance, 0, &ind);
             printf("Balance = %.2f\n", balance);
         } else {
             printf("Customer %ld not found.\n", (long)customer);
@@ -135,7 +135,7 @@ static void customers_balance(SQLHDBC dbc) {
     } else {
         odbc_extract_error("SQLPrepare", stmt, SQL_HANDLE_STMT);
     }
-    SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+    (void) SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 }
 
 /**

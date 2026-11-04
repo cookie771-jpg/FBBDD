@@ -11,26 +11,18 @@
 #define DateLength 11
 #define PROMPT "Enter a number that corresponds to your choice > "
 
-static int orders_open() {
-    SQLHENV env = NULL;
-    SQLHDBC dbc = NULL;
-    SQLHSTMT stmt = NULL;
+static void orders_open(SQLHDBC dbc) {
+    SQLHSTMT stmt = SQL_NULL_HSTMT;
     int ret; /* odbc.c */
     SQLRETURN ret2; /* ODBC API return status */
     int ordernumber = -1;
-
-    /* CONNECT */
-    ret = odbc_connect(&env, &dbc);
-    if (!SQL_SUCCEEDED(ret)){
-        return EXIT_FAILURE;
-    }
 
     /* Allocate a statement handle */
     ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
     ret = SQLPrepare(stmt, (SQLCHAR*) "SELECT ordernumber FROM orders WHERE shippeddate IS NULL ORDER BY ordernumber", SQL_NTS);
     if (!SQL_SUCCEEDED(ret)) {
         odbc_extract_error("", stmt, SQL_HANDLE_ENV);
-        return ret;
+        return;
     }
 
 
@@ -53,22 +45,14 @@ static int orders_open() {
     ret2 = SQLFreeHandle(SQL_HANDLE_STMT, stmt);
     if (!SQL_SUCCEEDED(ret2)) {
         odbc_extract_error("", stmt, SQL_HANDLE_STMT);
-        return ret;
+        return;
     }
 
-    /* DISCONNECT */
-    ret = odbc_disconnect(env, dbc);
-    if (!SQL_SUCCEEDED(ret)){
-        return EXIT_FAILURE;
-    }
-
-    return EXIT_SUCCESS;
+    return;
 }
 
-static int orders_range(){
-    SQLHENV env = NULL;
-    SQLHDBC dbc = NULL;
-    SQLHSTMT stmt = NULL;
+static void orders_range(SQLHDBC dbc){
+    SQLHSTMT stmt = SQL_NULL_HSTMT;
     int ret; /* odbc.c */
     SQLRETURN ret2; /* ODBC API return status*/
     int ordernumber = -1;
@@ -77,26 +61,19 @@ static int orders_range(){
     char guion;
     SQLLEN ind_shipped = 0;
 
-
-    /* CONECT */
-    ret = odbc_connect(&env, &dbc);
-    if (!SQL_SUCCEEDED(ret)){
-        return EXIT_FAILURE;
-    }
-
     /* Allocate a statement handle */
     ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
     ret = SQLPrepare(stmt, (SQLCHAR*) "SELECT ordernumber, orderdate, shippeddate FROM orders WHERE orderdate >= ? AND orderdate <= ? ORDER BY ordernumber", SQL_NTS);
     if (!SQL_SUCCEEDED(ret)){
         odbc_extract_error("", stmt, SQL_HANDLE_ENV);
-        return ret;
+        return;
     }
 
     printf("Enter dates (YYYY-MM-DD - YYYY-MM-DD) > ");
     (void)fflush(stdout);
 
     if (scanf("%10s %c %10s", orderdate, &guion, shippeddate) != EOF){
-        getchar();
+        (void) getchar();
         (void) SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_TYPE_DATE, 0, 0, orderdate, DateLength, NULL);
         (void) SQLBindParameter(stmt, 2, SQL_PARAM_INPUT, SQL_C_CHAR, SQL_TYPE_DATE, 0, 0, shippeddate, DateLength, NULL);
         
@@ -124,22 +101,14 @@ static int orders_range(){
     ret2 = SQLFreeHandle(SQL_HANDLE_STMT, stmt);
     if (!SQL_SUCCEEDED(ret2)){
         odbc_extract_error("", stmt, SQL_HANDLE_STMT);
-        return ret;
+        return;
     }
 
-    /* DISCONNECT */
-    ret = odbc_disconnect(env, dbc);
-    if (!SQL_SUCCEEDED(ret)){
-    return EXIT_FAILURE;
-    }
-
-    return EXIT_SUCCESS; 
+    return; 
 }
 
-static int orders_detail(){
-    SQLHENV env = NULL;
-    SQLHDBC dbc = NULL;
-    SQLHSTMT stmt = NULL;
+static void orders_detail(SQLHDBC dbc){
+    SQLHSTMT stmt = SQL_NULL_HSTMT;
     int ret;
     SQLRETURN ret2;
     int ordernumber = 0;
@@ -151,25 +120,19 @@ static int orders_detail(){
     double total = 0.0;
     int i = 0;
 
-    /* CONNECT */
-    ret = odbc_connect(&env, &dbc);
-    if (!SQL_SUCCEEDED(ret)){
-        return EXIT_FAILURE;
-    }
-
     /* Allocate a statement handle */
     ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
     ret = SQLPrepare(stmt, (SQLCHAR*) "SELECT o.orderdate, o.status, d.productcode, d.quantityordered, d.priceeach, (SELECT SUM(d2.quantityordered * d2.priceeach) FROM orderdetails d2 WHERE d2.ordernumber = o.ordernumber) AS total FROM orders o JOIN orderdetails d ON o.ordernumber = d.ordernumber WHERE o.ordernumber = ? ORDER BY d.orderlinenumber", SQL_NTS);
     if (!SQL_SUCCEEDED(ret)){
         odbc_extract_error("", stmt, SQL_HANDLE_STMT);
-        return ret;
+        return;
     }
 
     printf("Enter ordernumber > ");
     (void)fflush(stdout);
 
     if (scanf("%d", &ordernumber) == 1){
-        getchar();
+        (void) getchar();
         (void) SQLBindParameter(stmt, 1, SQL_PARAM_INPUT, SQL_C_LONG, SQL_INTEGER, 0, 0, &ordernumber, 0, NULL);
 
         (void) SQLExecute(stmt);
@@ -204,16 +167,10 @@ static int orders_detail(){
     ret2 = SQLFreeHandle(SQL_HANDLE_STMT, stmt);
     if (!SQL_SUCCEEDED(ret2)){
         odbc_extract_error("", stmt, SQL_HANDLE_STMT);
-        return ret;
+        return;
     }
 
-    /* DISCONNECT */
-    ret = odbc_disconnect(env, dbc);
-    if (!SQL_SUCCEEDED(ret)){
-        return EXIT_FAILURE;
-    }
-
-    return EXIT_SUCCESS;
+    return;
 }
 
 void menu_orders(SQLHDBC dbc) {
@@ -228,9 +185,9 @@ void menu_orders(SQLHDBC dbc) {
         choice = atoi(line);
 
         switch (choice) {
-            case 1: orders_open(); break;
-            case 2: orders_range(); break;
-            case 3: orders_detail(); break;
+            case 1: orders_open(dbc); break;
+            case 2: orders_range(dbc); break;
+            case 3: orders_detail(dbc); break;
             case 4: break;
             default: printf("\nYou have entered an invalid choice. Please try again\n");
         }

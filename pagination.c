@@ -88,7 +88,7 @@ static int show_page(SQLHSTMT stmt, int *has_next, int size) {
         rows++;
     }
     *has_next = SQL_SUCCEEDED(SQLFetch(stmt)) ? 1 : 0;
-    SQLCloseCursor(stmt);
+    (void) SQLCloseCursor(stmt);
     return rows;
 }
 
@@ -136,9 +136,9 @@ int paginate(SQLHSTMT stmt, int nparams) {
     int rows = 0, has_next = 0;
     char key = '\0';
 
-    SQLBindParameter(stmt, (SQLUSMALLINT)(nparams + 1), SQL_PARAM_INPUT,
+    (void) SQLBindParameter(stmt, (SQLUSMALLINT)(nparams + 1), SQL_PARAM_INPUT,
                      SQL_C_SLONG, SQL_INTEGER, 0, 0, &limit, 0, NULL);
-    SQLBindParameter(stmt, (SQLUSMALLINT)(nparams + 2), SQL_PARAM_INPUT,
+    (void) SQLBindParameter(stmt, (SQLUSMALLINT)(nparams + 2), SQL_PARAM_INPUT,
                      SQL_C_SLONG, SQL_INTEGER, 0, 0, &offset, 0, NULL);
 
     for (;;) {

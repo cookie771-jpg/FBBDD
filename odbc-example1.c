@@ -68,7 +68,7 @@ int main(void) {
     /* Free handles */
     /* Statement*/
     if (stmt != SQL_NULL_HSTMT)
-        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        (void) SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 
     /* DISCONNECT */
     ret = odbc_disconnect(env, dbc);

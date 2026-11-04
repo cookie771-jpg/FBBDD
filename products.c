@@ -9,10 +9,8 @@
 
 #define PROMPT "Enter a number that corresponds to your choice > "
 
-static int products_stock() {
-    SQLHENV env = NULL;
-    SQLHDBC dbc = NULL;
-    SQLHSTMT stmt = NULL;
+static void products_stock(SQLHDBC dbc) {
+    SQLHSTMT stmt = SQL_NULL_HSTMT;
     int ret; /* odbc.c */
     SQLRETURN ret2; /* ODBC API return status */
     #define BufferLength 512
@@ -20,32 +18,25 @@ static int products_stock() {
     char productcode[BufferLength] = "\0";
     SQLLEN cbProductCode = SQL_NTS;
 
-    /* CONNECT */
-    ret = odbc_connect(&env, &dbc);
-    if (!SQL_SUCCEEDED(ret)) {
-        return EXIT_FAILURE;
-    }
 
     /* Allocate a statement handle */
     ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
     if (!SQL_SUCCEEDED(ret)) {
-        odbc_disconnect(env, dbc);
-        return EXIT_FAILURE;
+        return;
     }
 
     ret = SQLPrepare(stmt, (SQLCHAR*) "SELECT quantityinstock FROM products WHERE productcode = ?", SQL_NTS);
     if (!SQL_SUCCEEDED(ret)) {
         odbc_extract_error("", stmt, SQL_HANDLE_STMT);
-        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-        odbc_disconnect(env, dbc);
-        return EXIT_FAILURE;
+        (void) SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        return;
     }
 
     printf("Enter productcode > ");
     (void) fflush(stdout);
 
     if (scanf("%511s", productcode) != EOF) {
-        getchar();
+        (void) getchar();
         cbProductCode = SQL_NTS;
         (void) SQLBindParameter(stmt, 1, SQL_PARAM_INPUT,
                                 SQL_C_CHAR, SQL_CHAR,
@@ -77,24 +68,15 @@ static int products_stock() {
     ret2 = SQLFreeHandle(SQL_HANDLE_STMT, stmt);
     if (!SQL_SUCCEEDED(ret2)) {
         odbc_extract_error("", stmt, SQL_HANDLE_STMT);
-        odbc_disconnect(env, dbc);
-        return EXIT_FAILURE;
+        return;
     }
 
-    /* DISCONNECT */
-    ret = odbc_disconnect(env, dbc);
-    if (!SQL_SUCCEEDED(ret)) {
-        return EXIT_FAILURE;
-    }
-
-    return EXIT_SUCCESS;
+    return;
 }
 
 
-static int products_find() {
-    SQLHENV env = NULL;
-    SQLHDBC dbc = NULL;
-    SQLHSTMT stmt = NULL;
+static void products_find(SQLHDBC dbc) {
+    SQLHSTMT stmt = SQL_NULL_HSTMT;
     int ret; /* odbc.c */
     SQLRETURN ret2; /* ODBC API return status */
     #define BufferLength 512
@@ -103,25 +85,17 @@ static int products_find() {
     char buf[2*BufferLength] = "%";
     int bufLen;
 
-    /* CONNECT */
-    ret = odbc_connect(&env, &dbc);
-    if (!SQL_SUCCEEDED(ret)) {
-        return EXIT_FAILURE;
-    }
-
     /* Allocate a statement handle */
     ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
     if (!SQL_SUCCEEDED(ret)) {
-        odbc_disconnect(env, dbc);
-        return EXIT_FAILURE;
+        return;
     }
 
     ret = SQLPrepare(stmt, (SQLCHAR*) "SELECT p.productcode, p.productname FROM products p WHERE p.productname LIKE ? ORDER BY p.productcode", SQL_NTS);
     if (!SQL_SUCCEEDED(ret)) {
         odbc_extract_error("", stmt, SQL_HANDLE_STMT);
-        SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-        odbc_disconnect(env, dbc);
-        return EXIT_FAILURE;
+        (void) SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+        return;
     }
 
     printf("Enter productname > ");
@@ -143,9 +117,8 @@ static int products_find() {
         ret = SQLExecute(stmt);
         if (!SQL_SUCCEEDED(ret)) {
             odbc_extract_error("", stmt, SQL_HANDLE_STMT);
-            SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-            odbc_disconnect(env, dbc);
-            return EXIT_FAILURE;
+            (void) SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+            return;
         }
 
         (void) SQLBindCol(stmt, 1, SQL_C_CHAR, (SQLCHAR*) productcode, BufferLength, NULL);
@@ -159,13 +132,9 @@ static int products_find() {
         ret2 = SQLCloseCursor(stmt);
         if (!SQL_SUCCEEDED(ret2)) {
             odbc_extract_error("", stmt, SQL_HANDLE_STMT);
-            SQLFreeHandle(SQL_HANDLE_STMT, stmt);
-            odbc_disconnect(env, dbc);
-            return EXIT_FAILURE;
+            (void) SQLFreeHandle(SQL_HANDLE_STMT, stmt);
+            return;
         }
-/*
-        if (flag == 0)
-            printf("Enter productname > ");*/
 
         (void) fflush(stdout);
     }
@@ -176,17 +145,10 @@ static int products_find() {
     ret2 = SQLFreeHandle(SQL_HANDLE_STMT, stmt);
     if (!SQL_SUCCEEDED(ret2)) {
         odbc_extract_error("", stmt, SQL_HANDLE_STMT);
-        odbc_disconnect(env, dbc);
-        return EXIT_FAILURE;
+        return;
     }
 
-    /* DISCONNECT */
-    ret = odbc_disconnect(env, dbc);
-    if (!SQL_SUCCEEDED(ret)) {
-        return EXIT_FAILURE;
-    }
-
-    return EXIT_SUCCESS;
+    return;
 }
 
 void menu_products(SQLHDBC dbc) {
@@ -201,8 +163,8 @@ void menu_products(SQLHDBC dbc) {
         choice = atoi(line);
 
         switch (choice) {
-            case 1: products_stock(); break;
-            case 2: products_find(); break;
+            case 1: products_stock(dbc); break;
+            case 2: products_find(dbc); break;
             case 3: break;
             default: printf("\nYou have entered an invalid choice. Please try again\n");
         }

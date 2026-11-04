@@ -1,0 +1,93 @@
+Splint 3.1.2 --- 21 Feb 2021
+
+customers.c: (in function customers_find)
+customers.c:73:5: Return value (type int) ignored: snprintf(pattern...
+  Result returned by function call is not used. If this is intended, can cast
+  result to (void) to eliminate message. (Use -retvalint to inhibit warning)
+customers.c:77:9: Return value (type SQLRETURN) ignored: SQLBindParameter...
+  Result returned by function call is not used. If this is intended, can cast
+  result to (void) to eliminate message. (Use -retvalother to inhibit warning)
+customers.c:79:9: Return value (type SQLRETURN) ignored: SQLBindParameter...
+customers.c:81:9: Return value (type int) ignored: paginate(stmt, 2)
+customers.c:85:5: Return value (type SQLRETURN) ignored: SQLFreeHandle(3,...
+customers.c: (in function customers_list_products)
+customers.c:101:9: Return value (type SQLRETURN) ignored: SQLBindParameter...
+customers.c:103:9: Return value (type int) ignored: paginate(stmt, 1)
+customers.c:107:5: Return value (type SQLRETURN) ignored: SQLFreeHandle(3,...
+customers.c: (in function customers_balance)
+customers.c:125:9: Return value (type SQLRETURN) ignored: SQLBindParameter...
+customers.c:130:13: Return value (type SQLRETURN) ignored: SQLGetData(stmt,...
+customers.c:138:5: Return value (type SQLRETURN) ignored: SQLFreeHandle(3,...
+menu.c: (in function main)
+menu.c:41:5: Return value (type int) ignored: odbc_disconnect(...
+odbc-connection-test-2.c:9:5: Function main defined more than once
+  A function or variable is redefined. One of the declarations should use
+  extern. (Use -redef to inhibit warning)
+   menu.c:43:1: Previous definition of main
+odbc-connection-test.c:9:5: Function main defined more than once
+   menu.c:43:1: Previous definition of main
+odbc-example1.c:11:5: Function main defined more than once
+   menu.c:43:1: Previous definition of main
+odbc-example1.c: (in function main)
+odbc-example1.c:71:9: Return value (type SQLRETURN) ignored:
+                         SQLFreeHandle(3,...
+odbc-example2.c:12:5: Function main defined more than once
+   menu.c:43:1: Previous definition of main
+odbc-example3.c:12:5: Function main defined more than once
+   menu.c:43:1: Previous definition of main
+odbc-example4.c:12:5: Function main defined more than once
+   menu.c:43:1: Previous definition of main
+orders.c: (in function orders_range)
+orders.c:99:9: Return value (type int) ignored: getchar()
+orders.c: (in function orders_detail)
+orders.c:172:9: Return value (type int) ignored: getchar()
+orders.c: (in function menu_orders)
+orders.c:231:21: Return value (type int) ignored: orders_open()
+orders.c:232:21: Return value (type int) ignored: orders_range()
+orders.c:233:21: Return value (type int) ignored: orders_detail()
+pagination.c: (in function show_page)
+pagination.c:91:5: Return value (type SQLRETURN) ignored: SQLCloseCursor(stmt)
+pagination.c: (in function paginate)
+pagination.c:139:5: Return value (type SQLRETURN) ignored: SQLBindParameter...
+pagination.c:141:5: Return value (type SQLRETURN) ignored: SQLBindParameter...
+products.c: (in function products_stock)
+products.c:24:24: Null storage env derivable from parameter odbc_connect (&env,
+                     ...)
+  A possibly null pointer is reachable from a parameter or global variable that
+  is not declared using a /*@null@*/ annotation. (Use -nullstate to inhibit
+  warning)
+   products.c:13:19: Storage env becomes null
+products.c:24:30: Null storage dbc derivable from parameter odbc_connect (...,
+                     &dbc)
+   products.c:14:19: Storage dbc becomes null
+products.c:30:34: Null storage stmt derivable from parameter SQLAllocHandle
+                     (..., &stmt)
+   products.c:15:21: Storage stmt becomes null
+products.c:32:9: Return value (type int) ignored: odbc_disconnect(...
+products.c:39:9: Return value (type SQLRETURN) ignored: SQLFreeHandle(3,...
+products.c:40:9: Return value (type int) ignored: odbc_disconnect(...
+products.c:48:9: Return value (type int) ignored: getchar()
+products.c:80:9: Return value (type int) ignored: odbc_disconnect(...
+products.c: (in function products_find)
+products.c:107:24: Null storage env derivable from parameter odbc_connect
+                      (&env, ...)
+   products.c:95:19: Storage env becomes null
+products.c:107:30: Null storage dbc derivable from parameter odbc_connect (...,
+                      &dbc)
+   products.c:96:19: Storage dbc becomes null
+products.c:113:34: Null storage stmt derivable from parameter SQLAllocHandle
+                      (..., &stmt)
+   products.c:97:21: Storage stmt becomes null
+products.c:115:9: Return value (type int) ignored: odbc_disconnect(...
+products.c:122:9: Return value (type SQLRETURN) ignored: SQLFreeHandle(3,...
+products.c:123:9: Return value (type int) ignored: odbc_disconnect(...
+products.c:146:13: Return value (type SQLRETURN) ignored: SQLFreeHandle(3,...
+products.c:147:13: Return value (type int) ignored: odbc_disconnect(...
+products.c:162:13: Return value (type SQLRETURN) ignored: SQLFreeHandle(3,...
+products.c:163:13: Return value (type int) ignored: odbc_disconnect(...
+products.c:179:9: Return value (type int) ignored: odbc_disconnect(...
+products.c: (in function menu_products)
+products.c:204:21: Return value (type int) ignored: products_stock()
+products.c:205:21: Return value (type int) ignored: products_find()
+
+Finished checking --- 48 code warnings
