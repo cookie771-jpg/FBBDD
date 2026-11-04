@@ -1,3 +1,8 @@
+/**
+ * @file products.c
+ * @author José Miguel Romero Oubiña
+ * @brief C file of the products' menu 
+ */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,8 +12,15 @@
 #include "odbc.h"
 #include "pagination.h"
 
+/** @brief Menu's prompt to choose the action you want  */
 #define PROMPT "Enter a number that corresponds to your choice > "
 
+/**
+ * @brief Function that shows the stock of a specific product code
+ * 
+ * @param dbc connection handle
+ * @author José Miguel Romero Oubiña
+ */
 static void products_stock(SQLHDBC dbc) {
     SQLHSTMT stmt = SQL_NULL_HSTMT;
     int ret; /* odbc.c */
@@ -21,10 +33,9 @@ static void products_stock(SQLHDBC dbc) {
 
     /* Allocate a statement handle */
     ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
-    if (!SQL_SUCCEEDED(ret)) {
-        return;
-    }
+    if (!SQL_SUCCEEDED(ret)) { return; }
 
+    /* Prepares the SQL query */
     ret = SQLPrepare(stmt, (SQLCHAR*) "SELECT quantityinstock FROM products WHERE productcode = ?", SQL_NTS);
     if (!SQL_SUCCEEDED(ret)) {
         odbc_extract_error("", stmt, SQL_HANDLE_STMT);
@@ -35,6 +46,7 @@ static void products_stock(SQLHDBC dbc) {
     printf("Enter productcode > ");
     (void) fflush(stdout);
 
+    /* Scans the user's input */
     if (scanf("%511s", productcode) != EOF) {
         (void) getchar();
         cbProductCode = SQL_NTS;
@@ -45,7 +57,7 @@ static void products_stock(SQLHDBC dbc) {
         if (SQL_SUCCEEDED(ret = SQLExecute(stmt))) {
             (void) SQLBindCol(stmt, 1, SQL_INTEGER,(SQLPOINTER) &quantityinstock, 0, NULL);
 
-            /* Loop through the rows in the result-set */
+            /* If the productcode exists, prints the stock available */
             if (SQL_SUCCEEDED(ret = SQLFetch(stmt))) {
                 printf("\nquantityinstock = %d\n", quantityinstock);
                 (void) SQLCloseCursor(stmt);
@@ -74,7 +86,11 @@ static void products_stock(SQLHDBC dbc) {
     return;
 }
 
-
+/**
+ * @brief Function
+ * 
+ * @param dbc 
+ */
 static void products_find(SQLHDBC dbc) {
     SQLHSTMT stmt = SQL_NULL_HSTMT;
     int ret; /* odbc.c */

@@ -1,13 +1,17 @@
+# Makefile Práctica 2 de Ziqi Zhoulin y José Miguel Romero Oubiña
+# Compilador y flags
 CC = gcc -g
 CFLAGS = -Wall -Wextra -pedantic
 LDLIBS = -lodbc
 
-export PGDATABASE:=classicmodels
+# Variables de entorno para PostgreSQL
+export PGDATABASE :=classicmodels
 export PGUSER :=alumnodb
 export PGPASSWORD :=alumnodb
-export PGCLIENTENCODING:=LATIN9
-export PGHOST:=localhost
+export PGCLIENTENCODING :=LATIN9
+export PGHOST :=localhost
 
+# Herramientas de Base de Datos
 DBNAME = $(PGDATABASE)
 PSQL = psql
 CREATEDB = createdb
@@ -15,15 +19,21 @@ DROPDB = dropdb --if-exists
 PG_DUMP = pg_dump
 PG_RESTORE = pg_restore
 
+# Includes
 HEADERS = odbc.h products.h orders.h customers.h pagination.h
 
+# Ejecutables
 MENU_EXE = menu
 MENU_OBJ = menu.o products.o orders.o customers.o pagination.o odbc.o
 
-ALL_EXE = $(ODBC_EXE) $(MENU_EXE)
+# --------
+# Compilar y Generar BD
+# --------
 
+# Base de Datos + Menu
 all: classic compile
 
+# Menu
 compile: $(MENU_EXE)
 
 %.o: %.c $(HEADERS)
@@ -33,6 +43,7 @@ compile: $(MENU_EXE)
 $(MENU_EXE): $(MENU_OBJ)
 	$(CC) -o $@ $^ $(LDLIBS)
 
+# Base de Datos Classicmodels
 classic: dropdb createdb restore
 
 createdb:
@@ -57,19 +68,19 @@ shell:
 	@echo Creando psql shell...
 	@$(PSQL)
 
+# --------
+# Ejecutar
+# --------
+
+# Ejecución normal
 run:
 	./menu
 
+# Ejecución con Valgrind
 vrun:
-	valgrind --leak-check=full \
-         --show-leak-kinds=all \
-         --track-origins=yes \
-         --errors-for-leak-kinds=all \
-         --error-exitcode=1 \
-         ./menu
-splint:
-	splint -nullpass *.c *.h > splint.log 2>&1
+	valgrind --leak-check=full -s ./menu
 
+# Ejecución de bash
 bash:
 	./products_find.sh
 	./products_stock.sh
@@ -80,13 +91,16 @@ bash:
 	./customers_balance.sh
 	FBD_PAGE_SIZE=1000 ./customers_list_products.sh
 
-clean: clean-odbc clean-menu
-	rm -f *.o core
+# --------
+# Splint
+# --------
+splint:
+	splint -nullpass *.c *.h > splint.log 2>&1
 
-clean-odbc:
-	rm -f $(ODBC_EXE) $(addsuffix .o,$(ODBC_EXE)) odbc.o
-
-clean-menu:
-	rm -f $(MENU_EXE) menu.o products.o orders.o customers.o pagination.o
-
-.PHONY: all compile odbc clean clean-odbc clean-menu classic createdb dropdb dump restore psql shell run vrun splint bash
+# --------
+# Limpieza
+# --------
+clean:
+	rm -f $(MENU_EXE) *.log *.o core
+	
+.PHONY: all compile classic createdb dropdb dump restore psql shell run vrun bash splint clean

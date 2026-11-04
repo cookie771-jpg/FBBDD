@@ -2,7 +2,6 @@
 #define PAGINATION_H
 
 #include <sql.h>
-#include <sqlext.h>
 
 /* Number of rows shown on each screen. */
 #define PAGE_SIZE 10

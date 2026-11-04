@@ -1,15 +1,18 @@
+/**
+ * @file products.h
+ * @author José Miguel Romero Oubiña
+ * @brief Arhivo de cabecera del submenú products 
+ */
 #ifndef PRODUCTS_H
 #define PRODUCTS_H
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sql.h>
-#include <sqlext.h>
 #include "odbc.h"
 
-
-/*int products_stock();
-int products_find();*/
+/**
+ * @brief products' menu that allows to know the stock and to find the product you need
+ * @author José Miguel Romero Oubiña
+ * @param dbc 
+ */
 void menu_products(SQLHDBC dbc);
 #endif /* PRODUCTS_H */
