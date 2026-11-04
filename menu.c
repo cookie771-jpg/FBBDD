@@ -13,6 +13,7 @@
 
 /**
  * @brief Main function of the program
+ * @author Ziqi Zhoulin y José Miguel Romero Oubiña
  * @return int
  */
 int main(void) {
