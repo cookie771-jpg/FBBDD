@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "pagination.h"
 #include "odbc.h"
@@ -24,6 +25,20 @@ int read_line(char *buf, int size) {
         buf[--len] = '\0';
     }
     return 0;
+}
+
+/**
+ * @brief Page size: PAGE_SIZE, or the value of FBD_PAGE_SIZE if it is set.
+ * @return rows per page
+ * @author
+ */
+static int page_size(void) {
+    const char *env = getenv("FBD_PAGE_SIZE");
+    long value = 0;
+
+    if (env != NULL) value = strtol(env, NULL, 10);
+    if (value > 0 && value < 100000) return (int) value;
+    return PAGE_SIZE;
 }
 
 /**
@@ -61,13 +76,14 @@ static void print_row(SQLHSTMT stmt) {
  *
  * @param stmt prepared statement
  * @param has_next out: 1 if there are more rows after this page
+ * @param size rows per page
  * @return number of rows printed, or -1 on error
  * @author 
  */
-static int show_page(SQLHSTMT stmt, int *has_next) {
+static int show_page(SQLHSTMT stmt, int *has_next, int size) {
     int rows = 0;
 
-    while (rows < PAGE_SIZE && SQL_SUCCEEDED(SQLFetch(stmt))) {
+    while (rows < size && SQL_SUCCEEDED(SQLFetch(stmt))) {
         print_row(stmt);
         rows++;
     }
@@ -113,7 +129,8 @@ static char ask_key(int page, int has_next, int has_prev) {
  * @author 
  */
 int paginate(SQLHSTMT stmt, int nparams) {
-    SQLINTEGER limit = PAGE_SIZE + 1;
+    int size = page_size();
+    SQLINTEGER limit = size + 1;
     SQLINTEGER offset = 0;
     SQLRETURN ret;
     int rows = 0, has_next = 0;
@@ -130,16 +147,16 @@ int paginate(SQLHSTMT stmt, int nparams) {
             odbc_extract_error("SQLExecute", stmt, SQL_HANDLE_STMT);
             return -1;
         }
-        rows = show_page(stmt, &has_next);
+        rows = show_page(stmt, &has_next, size);
         if (rows == 0 && offset == 0) {
             printf("No results found.\n");
             return 0;
         }
         if (has_next == 0 && offset == 0) return 0;
 
-        key = ask_key((int)(offset / PAGE_SIZE) + 1, has_next, (offset > 0) ? 1 : 0);
-        if (key == '>') offset += PAGE_SIZE;
-        else if (key == '<') offset -= PAGE_SIZE;
+        key = ask_key((int)(offset / size) + 1, has_next, (offset > 0) ? 1 : 0);
+        if (key == '>') offset += size;
+        else if (key == '<') offset -= size;
         else return 0;
     }
 }

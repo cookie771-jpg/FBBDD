@@ -1,17 +1,13 @@
-# Makefile Práctica 2 de Ziqi Zhoulin y José Miguel Romero Oubiña
-# Compilador y flags
 CC = gcc -g
-CFLAGS = -Wall -Wextra -pedantic #-ansi
+CFLAGS = -Wall -Wextra -pedantic
 LDLIBS = -lodbc
 
-# Variables de entorno para PostgreSQL
 export PGDATABASE:=classicmodels
 export PGUSER :=alumnodb
 export PGPASSWORD :=alumnodb
 export PGCLIENTENCODING:=LATIN9
 export PGHOST:=localhost
 
-# Herramientas de Base de Datos
 DBNAME = $(PGDATABASE)
 PSQL = psql
 CREATEDB = createdb
@@ -19,47 +15,31 @@ DROPDB = dropdb --if-exists
 PG_DUMP = pg_dump
 PG_RESTORE = pg_restore
 
-# Archivos de cabecera
 HEADERS = odbc.h products.h orders.h customers.h pagination.h
 
-# Ejecutables
 ODBC_EXE = odbc-connection-test odbc-connection-test-2 odbc-example1 odbc-example2 odbc-example3 odbc-example4
 MENU_EXE = menu
 MENU_OBJ = menu.o products.o orders.o customers.o pagination.o odbc.o
 
 ALL_EXE = $(ODBC_EXE) $(MENU_EXE)
 
-# -----------------------------------------------------------------
-# Compilar
-# -----------------------------------------------------------------
+all: dropdb createdb restore
 
-# Compila todo (ODBC + menu)
-all: $(ALL_EXE)
+compile: $(MENU_EXE)
 
-# Compila únicamente los programas de ODBC
 odbc: $(ODBC_EXE)
 
-# Compila únicamente el programa menu
-menu: $(MENU_EXE)
-
-# Compilación de archivos objeto con dependencia de los headers
 %.o: %.c $(HEADERS)
 	@echo Compilando $<...
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-# Vinculación de los ejecutables ODBC (cada uno con su .o y odbc.o)
 $(ODBC_EXE): % : %.o odbc.o
 	$(CC) -o $@ $^ $(LDLIBS)
 
-# Vinculación del ejecutable menu (con todos vuestros archivos)
 $(MENU_EXE): $(MENU_OBJ)
 	$(CC) -o $@ $^ $(LDLIBS)
 
-# -----------------------------------------------------------------
-# Base de Datos
-# -----------------------------------------------------------------
-
-classic: dropdb createdb restore shell
+classic: dropdb createdb restore
 
 createdb:
 	@echo Creando BBDD
@@ -68,7 +48,6 @@ createdb:
 dropdb:
 	@echo Eliminando BBDD
 	@$(DROPDB) $(DBNAME)
-	rm -f *.log
 
 dump:
 	@echo Creando dumpfile
@@ -84,9 +63,6 @@ shell:
 	@echo Creando psql shell...
 	@$(PSQL)
 
-# -----------------------------------------------------------------
-# Ejecutar
-# -----------------------------------------------------------------
 run:
 	./menu
 
@@ -101,30 +77,22 @@ splint:
 	splint -nullpass *.c *.h > splint.log 2>&1
 
 bash:
-	./products_find.sh 
-	./products_stock.sh 
-	./orders_open.sh 
-	./orders_range.sh 
-	./orders_detail.sh 
-	./customers_find.sh 
-	./customers_list_products_paginated.sh
+	./products_find.sh
+	./products_stock.sh
+	./orders_open.sh
+	./orders_range.sh
+	./orders_detail.sh
+	./customers_find.sh
 	./customers_balance.sh
-	./customers_list_products.sh  
+	FBD_PAGE_SIZE=1000 ./customers_list_products.sh
 
-# -----------------------------------------------------------------
-# Limpieza
-# -----------------------------------------------------------------
-
-# Limpia todo
 clean: clean-odbc clean-menu
-	rm -f *.o core *.log
+	rm -f *.o core
 
-# Limpia solo los ejecutables y objetos de ODBC
 clean-odbc:
 	rm -f $(ODBC_EXE) $(addsuffix .o,$(ODBC_EXE)) odbc.o
 
-# Limpia solo el ejecutable y objeto del menú
 clean-menu:
 	rm -f $(MENU_EXE) menu.o products.o orders.o customers.o pagination.o
 
-.PHONY: all compile odbc menu clean clean-odbc clean-menu test01 createdb dropdb dump restore psql shell
+.PHONY: all compile odbc clean clean-odbc clean-menu classic createdb dropdb dump restore psql shell run vrun splint bash
