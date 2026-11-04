@@ -201,8 +201,8 @@ void menu_products(SQLHDBC dbc) {
         choice = atoi(line);
 
         switch (choice) {
-            case 1: products_stock(dbc); break;
-            case 2: products_find(dbc); break;
+            case 1: products_stock(); break;
+            case 2: products_find(); break;
             case 3: break;
             default: printf("\nYou have entered an invalid choice. Please try again\n");
         }
