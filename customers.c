@@ -63,7 +63,7 @@ static int ask_customer_number(SQLINTEGER *out) {
     if (read_line(line, (int) sizeof(line)) != 0) return -1;
     value = strtol(line, &end, 10);
     if (end == line || *end != '\0') {
-        printf("Invalid customer number.\n");
+        printf("Invalid customer number\n\n");
         return -1;
     }
     *out = (SQLINTEGER)value;

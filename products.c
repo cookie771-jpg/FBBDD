@@ -48,23 +48,22 @@ static void products_stock(SQLHDBC dbc) {
     (void) fflush(stdout);
 
     /* Scans the user's input */
-    if (scanf("%511s", productcode) != EOF) {
-        (void) getchar();
+    if (fgets(productcode, (int) sizeof(productcode), stdin) != NULL) {
+
+        /* quitar el salto de linea solo si existe */
+        productcode[strcspn(productcode, "\n")] = '\0';
+
         cbProductCode = SQL_NTS;
         (void) SQLBindParameter(stmt, 1, SQL_PARAM_INPUT,
                                 SQL_C_CHAR, SQL_CHAR,
                                 BufferLength, 0, productcode, BufferLength, &cbProductCode);
 
         if (SQL_SUCCEEDED(ret = SQLExecute(stmt))) {
-            (void) SQLBindCol(stmt, 1, SQL_INTEGER,(SQLPOINTER) &quantityinstock, 0, NULL);
+            (void) SQLBindCol(stmt, 1, SQL_INTEGER, (SQLPOINTER) &quantityinstock, 0, NULL);
 
             /* If the productcode exists, prints the stock available */
             if (SQL_SUCCEEDED(ret = SQLFetch(stmt))) {
                 printf("\nQuantity of %s in stock: %d\n", productcode, quantityinstock);
-                (void) SQLCloseCursor(stmt);
-                (void) fflush(stdout);
-
-                
             } else {
                 printf("No data found for productcode: %s\n", productcode);
             }

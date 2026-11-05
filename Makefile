@@ -30,9 +30,6 @@ MENU_OBJ = menu.o products.o orders.o customers.o pagination.o odbc.o
 # Compilar y Generar BD
 # --------
 
-# Base de Datos + Menu
-all: classic compile
-
 # Menu
 compile: $(MENU_EXE)
 
@@ -44,7 +41,7 @@ $(MENU_EXE): $(MENU_OBJ)
 	$(CC) -o $@ $^ $(LDLIBS)
 
 # Base de Datos Classicmodels
-classic: dropdb createdb restore
+all: dropdb createdb restore
 
 createdb:
 	@echo Creando BBDD
