@@ -193,7 +193,7 @@ void menu_customers(SQLHDBC dbc) {
             case 2: customers_list_products(dbc); break;
             case 3: customers_balance(dbc); break;
             case 4: break;
-            default: printf("You have entered an invalid choice. Please try again\n");
+            default: printf("\nYou have entered an invalid choice. Please try again\n");
         }
     } while (choice != 4);
 }

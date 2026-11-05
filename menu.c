@@ -34,7 +34,7 @@ int main(void) {
         printf("1. Products\n");
         printf("2. Orders\n");
         printf("3. Customers\n");
-        printf("4. Exit\n");
+        printf("4. Exit\n\n");
         printf("Enter a number that corresponds to your choice > ");
         if (read_line(line, (int) sizeof(line)) != 0) break;
         opcion = atoi(line);
