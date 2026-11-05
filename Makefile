@@ -30,16 +30,6 @@ MENU_OBJ = menu.o products.o orders.o customers.o pagination.o odbc.o
 # Compilar y Generar BD
 # --------
 
-# Menu
-compile: $(MENU_EXE)
-
-%.o: %.c $(HEADERS)
-	@echo Compilando $<...
-	$(CC) $(CFLAGS) -c -o $@ $<
-
-$(MENU_EXE): $(MENU_OBJ)
-	$(CC) -o $@ $^ $(LDLIBS)
-
 # Base de Datos Classicmodels
 all: dropdb createdb restore
 
@@ -64,6 +54,16 @@ psql: shell
 shell:
 	@echo Creando psql shell...
 	@$(PSQL)
+
+# Menu
+compile: $(MENU_EXE)
+
+%.o: %.c $(HEADERS)
+	@echo Compilando $<...
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(MENU_EXE): $(MENU_OBJ)
+	$(CC) -o $@ $^ $(LDLIBS)
 
 # --------
 # Ejecutar
