@@ -1,6 +1,5 @@
 *.o
 *.exe
-*.log
 menu
 odbc-connection-test
 odbc-connection-test-2
