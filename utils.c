@@ -8,19 +8,99 @@ void replaceExtensionByIdx(const char *fileName, char * indexName) {
 
 
 bool createTable(const char * tableName) {
-    return true;
+    FILE *f;
+    int numero=-1;
+    f=fopen(tableName,"rb");
+    if (f!=NULL)
+    {
+        fclose(f);
+        return true;
     }
 
-bool createIndex(const char *indexName) {
+    f=fopen(tableName,"wb");
+    if (f==NULL)
+    {
+        return false;
+    }
+
+    fwrite(&numero,sizeof(int),1,f);
+
+    fclose(f);
     return true;
+
+ }
+
+bool createIndex(const char *indexName) {
+    FILE *f;
+    int numero=-1;
+    f=fopen(indexName,"rb");
+    if (f!=NULL)
+    {
+        fclose(f);
+        return true;
+    }
+    
+    f=fopen(indexName,"wb");
+    if (f==NULL)
+    {
+        return false;
+    }
+
+    fwrite(&numero,sizeof(int),1,f);
+    fwrite(&numero,sizeof(int),1,f);
+
+    fclose(f);
+    return true;
+
 }
 void printnode(size_t _level, size_t level,
                FILE * indexFileHandler, int node_id, char side) {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     return;
 }
 
 void printTree(size_t level, const char * indexName)
 {
+
+    FILE*f;
+    int raiz;
+
+    f=fopen(indexName,"rb");
+    if(f==NULL){
+        printf("Error en la funcion prinTree\n");
+        return false;
+    }
+    fread(&raiz,)
+
+
+
+
+
+
+
+
+
+
+
+
+
     return;
 }
 
