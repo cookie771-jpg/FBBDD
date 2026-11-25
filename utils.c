@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 #include "utils.h"
 #include <string.h>
 
@@ -61,10 +60,10 @@ bool createIndex(const char *indexName)
     fclose(f);
     return true;
 }
+
 void printnode(size_t _level, size_t level,
                FILE *indexFileHandler, int node_id, char side)
 {
-
     Node nodo;
     long posicion = INDEX_HEADER_SIZE + node_id * sizeof(Node);
     int i;
@@ -93,7 +92,6 @@ void printnode(size_t _level, size_t level,
 
 void printTree(size_t level, const char *indexName)
 {
-
     FILE *f;
     int raiz;
 
@@ -121,7 +119,6 @@ void printTree(size_t level, const char *indexName)
 bool findKey(const char *book_id, const char *indexName,
              int *nodeIDOrDataOffset)
 {
-
     FILE *f;
     int root;
     int num_nodes;
@@ -146,7 +143,6 @@ bool findKey(const char *book_id, const char *indexName,
     current = root;
     while (current != -1)
     {
-
         long pos = INDEX_HEADER_SIZE + current * sizeof(Node);
         fseek(f, pos, SEEK_SET);
         fread(&n, sizeof(Node), 1, f);
@@ -172,7 +168,6 @@ bool findKey(const char *book_id, const char *indexName,
 
 bool addIndexEntry(char *book_id, int bookOffset, char const *indexName)
 {
-
     FILE *f;
     int root;
     int num_nodes;
@@ -186,14 +181,16 @@ bool addIndexEntry(char *book_id, int bookOffset, char const *indexName)
     fread(&root, sizeof(int), 1, f);
     fread(&num_nodes, sizeof(int), 1, f);
 
-    // caso árbol vacío
+    /* caso árbol vacío */
     if (root == -1)
     {
         Node n;
-        strncpy(n.book_id, book_id,4);
-        n.book_id[4]='\0';
+        memset(&n, 0, sizeof(Node));          /* limpia padding */
+        strncpy(n.book_id, book_id, 4);
+        n.book_id[4] = '\0';
         n.offset = bookOffset;
         n.left = n.right = -1;
+
         fseek(f, INDEX_HEADER_SIZE + 0 * sizeof(Node), SEEK_SET);
         fwrite(&n, sizeof(Node), 1, f);
 
@@ -205,43 +202,44 @@ bool addIndexEntry(char *book_id, int bookOffset, char const *indexName)
         fclose(f);
         return true;
     }
-    int current= root;
-    int parent=-1;
-    int side =0;
+
+    int current = root;
+    int parent = -1;
+    int side = 0;
     Node n;
 
     while (current != -1)
     {
-
         long pos = INDEX_HEADER_SIZE + current * sizeof(Node);
         fseek(f, pos, SEEK_SET);
         fread(&n, sizeof(Node), 1, f);
         int cmp = strcmp(book_id, n.book_id);
-        if (cmp == 0) //clave duplicada
+        if (cmp == 0) /* clave duplicada */
         {
             fclose(f);
             return false;
         }
-        parent=current;
+        parent = current;
 
         if (cmp < 0)
         {
-            side=0;
+            side = 0;
             current = n.left;
         }
         else
         {
-            side=1;
+            side = 1;
             current = n.right;
         }
     }
 
     Node nuevo;
+    memset(&nuevo, 0, sizeof(Node));          /* limpia padding */
     strncpy(nuevo.book_id, book_id, 4);
     nuevo.book_id[4] = '\0';
     nuevo.offset = bookOffset;
-    nuevo.left   = -1;
-    nuevo.right  = -1;
+    nuevo.left = -1;
+    nuevo.right = -1;
 
     int new_id = num_nodes;
     long pos_new = INDEX_HEADER_SIZE + new_id * sizeof(Node);
@@ -252,26 +250,23 @@ bool addIndexEntry(char *book_id, int bookOffset, char const *indexName)
     fseek(f, pos_parent, SEEK_SET);
     fread(&n, sizeof(Node), 1, f);
 
-    if (side == 0) n.left  = new_id;
+    if (side == 0) n.left = new_id;
     else           n.right = new_id;
 
     fseek(f, pos_parent, SEEK_SET);
     fwrite(&n, sizeof(Node), 1, f);
 
     num_nodes++;
-    fseek(f, sizeof(int), SEEK_SET);   
+    fseek(f, sizeof(int), SEEK_SET);
     fwrite(&num_nodes, sizeof(int), 1, f);
 
     fclose(f);
     return true;
-
-    
 }
 
 bool addTableEntry(Book *book, const char *tablename,
                    const char *indexName)
 {
-
     FILE *f;
     int valor;
     int offset;
@@ -282,7 +277,7 @@ bool addTableEntry(Book *book, const char *tablename,
         return false;
     }
 
-    f = fopen(indexName, "r+b");
+    f = fopen(tablename, "r+b");
     if (f == NULL)
     {
         return false;
