@@ -5,20 +5,30 @@
 #include "utils.h"
 
 #define CHAR_LENGTH 512
-int use(char * tableName);
-int insert(char * book_id, int bookOffset, const char * indexName); 
-/* MAL, USAR ESTRUCTURAS DEFINIDAS PUNTO 3
-PRIMERO QUE SE HAGA EL PUNTO 3, LUEGO HACER INTERFAZ */
+
+/*
+typedef struct book {
+    char book_id[PK_SIZE ];
+    size_t title_len;
+    char *title; 
+} Book;
+
+
+typedef struct node {
+    char book_id[PK_SIZE];
+    int left, right, parent, offset;
+}Node;
+*/
+
+void use(char * tableName);
 int print(char * tableName);
-int exit();
+int exit_menu();
 
 int main() {
     /* se pasa de funcion a funcion (abrir y cerrar fichero)*/
     char tableName[CHAR_LENGTH] = "";
-    char book_id[CHAR_LENGTH] = "";
-    int bookOffset = -1;
-    char indexName[CHAR_LENGTH] = "";
     int option;
+    Book * book = NULL;
     /* Use: */
     do {
         printf("\n\n\n----  DATABASE OF  ----\n");
@@ -32,13 +42,10 @@ int main() {
                 use(*tableName);
                 break;
             case 2:
-                insert(* book_id, bookOffset, * indexName);
                 break;
             case 3:
-                print(tableName);
                 break;
             case 4:
-                exit;
                 break;
             default:
                 printf("Enter a valid option\n");
@@ -48,31 +55,7 @@ int main() {
     return 0;
 }
 
-
-int use(char * tableName) {
-    if (tableName == NULL) {
-        return -1;
-    }
-
-    do {
-        printf("\nEnter the Table's name >");
-        fgets(tableName, CHAR_LENGTH, stdin);
-        getchar();
-
-        if (createTable(tableName) == false) {
-            printf("ERROR: not valid tableName\n");
-            if (strcpy(tableName, "") == NULL) {
-                printf("Function Error Strcpy\n");
-                return -1;
-            }
-        }
-    } while (strcmp(tableName, "") == 0);
-    
-    return 0;
-}
-
-
-/*void use(char * tableName) {
+void use(char * tableName) {
     if (tableName == NULL) {
         return;
     }
@@ -85,10 +68,31 @@ int use(char * tableName) {
         printf("ERROR: not valid tableName\n");
     }    
     return;
-}*/
+}
 
-int insert(char * book_id, int bookOffset, const char * indexName) {}
+int insert(const char * tableName, Book *book, int bookOffset, const char * indexName) {
+    FILE *f = NULL;
+    int flag = 0;
 
+    if (tableName == NULL) {
+        return -1;
+    }
+    if (!(f = fopen(tableName, "rb"))) {
+        return -1;
+    }
+    fread(&flag, sizeof(int), 1, f);
+    if (flag != -1) {
+        printf("ERROR: No has usado el comando Use\n");
+        return -1;
+    }
+
+
+
+
+
+}
+
+int exit_menu() {return 0; }
 /*
 bool createTable(const char * tableName);
 bool createIndex(const char * indexName);
