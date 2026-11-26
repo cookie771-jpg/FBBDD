@@ -168,9 +168,9 @@ bool findKey(const char *book_id, const char *indexName,
 
 bool addIndexEntry(char *book_id, int bookOffset, char const *indexName)
 {
-    FILE *f;
-    int root;
-    int num_nodes;
+    FILE *f = NULL;
+    int root = -1;
+    int num_nodes = 0;
 
     f = fopen(indexName, "r+b");
     if (f == NULL)
@@ -250,8 +250,10 @@ bool addIndexEntry(char *book_id, int bookOffset, char const *indexName)
     fseek(f, pos_parent, SEEK_SET);
     fread(&n, sizeof(Node), 1, f);
 
-    if (side == 0) n.left = new_id;
-    else           n.right = new_id;
+    if (side == 0)
+        n.left = new_id;
+    else
+        n.right = new_id;
 
     fseek(f, pos_parent, SEEK_SET);
     fwrite(&n, sizeof(Node), 1, f);
@@ -264,27 +266,53 @@ bool addIndexEntry(char *book_id, int bookOffset, char const *indexName)
     return true;
 }
 
-bool addTableEntry(Book *book, const char *tablename,
-                   const char *indexName)
+bool addTableEntry(Book * book, const char * tableName, const char * indexName)
 {
-    FILE *f;
-    int valor;
-    int offset;
+    FILE *f = NULL;
+    int data = 0;
+    int offset = 0;
+    int bookOffset = 0;
+    int lenTitle = 0;
 
-    if (findKey(book->book_id, indexName, &offset))
-    {
-        printf("La información ya está añadida\n");
+    if (book == NULL || tableName == NULL || indexName == NULL) {
+        printf("ERROR: an argument is invalid\n");
         return false;
     }
 
-    f = fopen(tablename, "r+b");
-    if (f == NULL)
-    {
+    if (findKey(book->book_id, indexName, &offset) == true) {
+        printf("The information has already been added\n");
         return false;
     }
 
-    freed(&valor, sizeof(int), 1, f);
-    if (valor != -1)
-    {
+    if (!(f = fopen(tableName, "r+b"))) {
+        printf("ERROR: can't open the file\n");
+        return false;
     }
+
+    lenTitle = strlen(book->title);
+
+    if (fread(&data, sizeof(int), 1, f) != 1) {
+        if (fclose(f) != 0) {
+            return false;
+        }
+        return false;
+    }
+
+    if (data == -1) { /* No hay borrados */
+        if (fseek(f, 0, SEEK_END) != 0) {
+            if (fclose(f) != 0) {
+                return false;
+            }
+            return false;
+        }
+    }
+    else { /* Hay borrados */
+        int prevOffset = 0;
+    }
+
+
+
+
+
+
 }

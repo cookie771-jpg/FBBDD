@@ -70,26 +70,42 @@ void use(char * tableName) {
     return;
 }
 
-int insert(const char * tableName, Book *book, int bookOffset, const char * indexName) {
-    FILE *f = NULL;
+bool insert(Book *book, const char * tableName, const char * indexName) {
     int flag = 0;
+    char bk_id[PK_SIZE + 2] = "";
+    char bk_title[512] = "";
 
-    if (tableName == NULL) {
-        return -1;
-    }
-    if (!(f = fopen(tableName, "rb"))) {
-        return -1;
-    }
-    fread(&flag, sizeof(int), 1, f);
-    if (flag != -1) {
-        printf("ERROR: No has usado el comando Use\n");
-        return -1;
+    if (book == NULL || tableName == NULL || indexName == NULL) {
+        printf("ERROR: You haven't used the command Use\n");
+        return false;
     }
 
+    printf("Enter the Book ID > ");
+    if (fgets(bk_id, sizeof(bk_id), stdin) == NULL) {
+        return false;
+    }
+    bk_id[strcspn(bk_id, "\n")] = '\0';
+    if (strlen(bk_id) != PK_SIZE) {
+        printf("ERROR: Book ID must be exactly 4 characters\n");
+        return false;
+    }
 
+    printf("Enter the Book Title > ");
+    if (fgets(bk_title, sizeof(bk_title), stdin) == NULL) {
+        return false;
+    }
+    bk_title[strcspn(bk_title, "\n")] = '\0';
 
+    strncpy(book->book_id, bk_id, PK_SIZE);
+    book->title_len = strlen(bk_title);
+    strncpy(book->title, bk_title, book->title_len);
 
+    if (addTableEntry(book, tableName, indexName) == false) {
+        printf("ERROR: Could not insert the book\n");
+        return false;
+    }
 
+    return true;
 }
 
 int exit_menu() {return 0; }
